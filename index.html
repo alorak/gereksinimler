@@ -1,0 +1,5079 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gereksinim ve İş Takibi</title>
+<style>
+:root{
+  --bg:#eef0f3;
+  --panel:#ffffff;
+  --ink:#1a1f26;
+  --muted:#6b7480;
+  --line:#d7dbe1;
+  --line-soft:#e8eaee;
+  --accent:#1b7a52;
+  --accent-ink:#ffffff;
+  --sys:#1b7a52;
+  --sw:#2563eb;
+  --epic:#7c3aed;
+  --story:#0d9488;
+  --task:#92400e;
+  --test:#e11d48;
+  --warn:#a23b2e;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100vh;overflow:hidden;margin:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:var(--sans);font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* ---------- üst gezinme çubuğu (navbar) ---------- */
+.navbar{
+  background:#1e242c;
+  color:#c8ced6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  height:54px;
+  border-bottom:1px solid #2f3641;
+  flex:none;
+  z-index:25;
+}
+.nav-left{
+  display:flex;
+  align-items:center;
+  gap:24px;
+  min-width:0;
+}
+.navbar .brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:none;
+  text-decoration:none;
+  color:inherit;
+}
+.brand-icon{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#2f5d50;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+}
+.brand-text h1{
+  margin:0;
+  font-size:14px;
+  font-weight:600;
+  letter-spacing:-.01em;
+  color:#fff;
+  line-height:1.2;
+}
+.brand-text span{
+  font-size:10.5px;
+  color:#7d8794;
+  display:block;
+  line-height:1;
+}
+.nav-tabs{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.nav-tabs button{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  background:none;
+  border:1px solid transparent;
+  border-radius:6px;
+  padding:6px 11px;
+  color:#adb7c4;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  transition:background .12s, color .12s, border-color .12s;
+}
+.nav-tabs button:hover{background:#2c343f;color:#fff}
+.nav-tabs button[aria-current="true"]{
+  background:#2b473f;
+  color:#fff;
+  border-color:#3c6257;
+}
+.nav-tabs .n{
+  font-family:var(--mono);
+  font-size:11px;
+  background:rgba(255,255,255,0.12);
+  padding:1px 6px;
+  border-radius:10px;
+  color:#c0cbdb;
+}
+.nav-tabs button[aria-current="true"] .n{
+  background:rgba(255,255,255,0.22);
+  color:#fff;
+}
+.nav-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:none;
+}
+.save-status{
+  font-size:11.5px;
+  color:#8a96a5;
+}
+.hamburger-btn{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.12);
+  color:#e2e8f0;
+  border-radius:6px;
+  width:32px;
+  height:32px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all .15s;
+  flex:none;
+}
+.hamburger-btn:hover{
+  background:rgba(255,255,255,0.16);
+  color:#fff;
+  border-color:rgba(255,255,255,0.25);
+}
+.nav-btn{
+  background:rgba(255,255,255,0.06);
+  border:1px solid #3a424d;
+  color:#c8ced6;
+  border-radius:6px;
+  padding:5px 10px;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:all .12s;
+}
+.nav-btn:hover{
+  background:rgba(255,255,255,0.14);
+  border-color:#5c6776;
+  color:#fff;
+}
+.nav-btn.nav-btn-save{
+  background:rgba(255,255,255,0.04);
+  border-color:#3a424d;
+  color:#64748b;
+  cursor:not-allowed;
+  opacity:0.6;
+}
+.nav-btn.nav-btn-save.is-dirty{
+  background:#1b7a52;
+  border-color:#229966;
+  color:#fff;
+  cursor:pointer;
+  opacity:1;
+  font-weight:600;
+  box-shadow:0 0 10px rgba(27,122,82,0.45);
+  animation:pulseSave 2s infinite;
+}
+@keyframes pulseSave {
+  0% { box-shadow: 0 0 0 0 rgba(34,153,102,0.6); }
+  70% { box-shadow: 0 0 0 7px rgba(34,153,102,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,153,102,0); }
+}
+.nav-btn.nav-btn-save.is-dirty:hover{
+  background:#166a46;
+  border-color:#1b7a52;
+}
+
+/* ---------- Sol Proje / Çalışma Alanı Drawer ---------- */
+.drawer-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,0.55);
+  backdrop-filter:blur(2px);
+  z-index:90;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .2s ease, visibility .2s ease;
+}
+.drawer-overlay.open{
+  opacity:1;
+  visibility:visible;
+}
+.drawer{
+  position:fixed;
+  top:0;
+  left:0;
+  bottom:0;
+  width:340px;
+  max-width:85vw;
+  background:#1a202c;
+  color:#e2e8f0;
+  z-index:100;
+  box-shadow:4px 0 24px rgba(0,0,0,0.35);
+  transform:translateX(-100%);
+  transition:transform .22s cubic-bezier(0.16, 1, 0.3, 1);
+  display:flex;
+  flex-direction:column;
+}
+.drawer.open{
+  transform:translateX(0);
+}
+.drawer-head{
+  padding:16px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.drawer-head h3{
+  margin:0;
+  font-size:14px;
+  font-weight:600;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.drawer-head .drawer-close{
+  background:none;
+  border:0;
+  color:#94a3b8;
+  font-size:16px;
+  cursor:pointer;
+  padding:4px 8px;
+  border-radius:4px;
+  line-height:1;
+}
+.drawer-head .drawer-close:hover{
+  color:#fff;
+  background:rgba(255,255,255,0.1);
+}
+.drawer-actions{
+  padding:12px 18px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.btn-new-ws{
+  background:#1b7a52;
+  border:1px solid #229966;
+  color:#fff;
+  border-radius:6px;
+  padding:7px 12px;
+  font-size:12.5px;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:all .15s;
+  width:100%;
+  justify-content:center;
+}
+.btn-new-ws:hover{
+  background:#166a46;
+}
+.btn-new-ws:disabled{
+  background:#334155;
+  border-color:#475569;
+  color:#94a3b8;
+  cursor:not-allowed;
+}
+.drawer-csv-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.btn-drawer-csv{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#cbd5e1;
+  border-radius:6px;
+  padding:6px 10px;
+  font-size:11.5px;
+  font-weight:500;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-drawer-csv:hover{
+  background:rgba(255,255,255,0.12);
+  border-color:rgba(255,255,255,0.22);
+  color:#fff;
+}
+.btn-drawer-csv svg{
+  flex-shrink:0;
+}
+.drawer-body{
+  flex:1;
+  overflow-y:auto;
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.ws-card{
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:8px;
+  padding:10px 12px;
+  cursor:pointer;
+  transition:all .15s;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+}
+.ws-card:hover{
+  background:rgba(255,255,255,0.08);
+  border-color:rgba(255,255,255,0.18);
+}
+.ws-card.active{
+  background:rgba(27,122,82,0.18);
+  border-color:rgba(34,153,102,0.5);
+  box-shadow:inset 3px 0 0 #229966;
+}
+.ws-card-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.ws-card-title{
+  font-size:13px;
+  font-weight:600;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  flex:1;
+}
+.ws-card.active .ws-card-title{
+  color:#4ade80;
+}
+.ws-card-badge{
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase;
+  background:#1b7a52;
+  color:#fff;
+  padding:1.5px 6px;
+  border-radius:10px;
+}
+.ws-card-sub{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:11.5px;
+  color:#94a3b8;
+}
+.ws-card-actions{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.ws-btn-action{
+  background:none;
+  border:0;
+  color:#94a3b8;
+  cursor:pointer;
+  padding:3px 5px;
+  border-radius:4px;
+  font-size:11px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .12s;
+  line-height:1;
+}
+.ws-btn-action svg{
+  display:block;
+  pointer-events:none;
+}
+.ws-btn-action:hover{
+  color:#fff;
+  background:rgba(255,255,255,0.12);
+}
+.ws-btn-action.delete:hover{
+  color:#f87171;
+  background:rgba(248,113,113,0.12);
+}
+.drawer-foot{
+  padding:12px 18px;
+  border-top:1px solid rgba(255,255,255,0.08);
+  font-size:11px;
+  color:#64748b;
+  line-height:1.4;
+}
+
+.app{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 0;
+  flex:1;
+  min-height:0;
+  height:calc(100vh - 54px);
+  overflow:hidden;
+  transition:grid-template-columns .18s ease;
+}
+.app.inspect{grid-template-columns:minmax(0,1fr) 390px}
+
+/* ---------- orta ---------- */
+.main{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+  background:var(--panel);
+}
+.topbar{
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  padding:12px 18px;
+  border-bottom:1px solid var(--line);
+  background:var(--panel);
+}
+.topbar h2{margin:0 8px 0 0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.topbar .grow{flex:1}
+.search{position:relative}
+.search input{
+  width:230px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:#fbfbfc
+}
+.search input:focus{background:#fff}
+.btn{border:1px solid var(--line);background:#fbfbfc;border-radius:6px;padding:6px 11px;font-size:13px}
+.btn:hover{background:#f2f3f5;border-color:#c2c8d0}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:#156341}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.ghost:hover{background:#f2f3f5;color:var(--ink)}
+
+/* Ekleme Buton Renkleri */
+.btn-add-sys{background:var(--sys);border-color:var(--sys);color:#fff;font-weight:500}
+.btn-add-sys:hover{background:#156341;border-color:#156341;color:#fff}
+
+.btn-add-sw{background:var(--sw);border-color:var(--sw);color:#fff;font-weight:500}
+.btn-add-sw:hover{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+
+.btn-add-epic{background:var(--epic);border-color:var(--epic);color:#fff;font-weight:500}
+.btn-add-epic:hover{background:#6d28d9;border-color:#6d28d9;color:#fff}
+
+.btn-add-story{background:var(--story);border-color:var(--story);color:#fff;font-weight:500}
+.btn-add-story:hover{background:#0f766e;border-color:#0f766e;color:#fff}
+
+.btn-add-task{background:var(--task);border-color:var(--task);color:#fff;font-weight:500}
+.btn-add-task:hover{background:#78350f;border-color:#78350f;color:#fff}
+
+.btn-add-test{background:var(--test);border-color:var(--test);color:#fff;font-weight:500}
+.btn-add-test:hover{background:#be123c;border-color:#be123c;color:#fff}
+
+/* ---------- sütun başlığı filtre butonları ve combobox popover ---------- */
+.th-wrap{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  width:100%;
+}
+.th-filter-btn{
+  background:none;
+  border:1px solid transparent;
+  border-radius:4px;
+  padding:2px 3.5px;
+  cursor:pointer;
+  color:var(--muted);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:all .12s;
+  margin-left:auto;
+  flex-shrink:0;
+  line-height:1;
+}
+.th-filter-btn:hover{
+  background:rgba(0,0,0,0.06);
+  color:var(--ink);
+  border-color:var(--line);
+}
+.th-filter-btn.active{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+  box-shadow:0 1px 3px rgba(27,122,82,0.3);
+}
+.th-filter-btn.active:hover{
+  background:#156341;
+}
+
+/* Combobox Popover */
+.col-filter-popover{
+  position:fixed;
+  z-index:9999;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.14);
+  width:230px;
+  max-width:90vw;
+  padding:10px;
+  font-size:12px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+}
+.col-filter-popover.open{
+  display:flex;
+}
+.cfp-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line-soft);
+  padding-bottom:6px;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--ink);
+}
+.cfp-actions{
+  display:flex;
+  gap:10px;
+  font-size:11px;
+}
+.cfp-link{
+  color:var(--sw);
+  background:none;
+  border:0;
+  padding:0;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:500;
+}
+.cfp-link:hover{
+  text-decoration:underline;
+}
+.cfp-search{
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:5px;
+  padding:4px 8px;
+  font-size:11.5px;
+  outline:none;
+  background:#fafbfc;
+}
+.cfp-search:focus{
+  background:#fff;
+  border-color:var(--accent);
+}
+.cfp-list{
+  max-height:180px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  margin:2px 0;
+}
+.cfp-item{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:4px 6px;
+  border-radius:4px;
+  cursor:pointer;
+  user-select:none;
+  font-size:12px;
+  transition:background .1s;
+}
+.cfp-item:hover{
+  background:#f3f4f6;
+}
+.cfp-item input[type=checkbox]{
+  cursor:pointer;
+  margin:0;
+}
+.cfp-item .count{
+  margin-left:auto;
+  font-size:10.5px;
+  color:var(--muted);
+}
+
+/* Tablo satır içi hızlı bağlantı butonu ve popover */
+.row-link-btn{
+  background:none;
+  border:1px solid transparent;
+  border-radius:4px;
+  padding:2px 4px;
+  cursor:pointer;
+  color:var(--muted);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  opacity:0;
+  transition:all .12s;
+  flex-shrink:0;
+  margin-left:auto;
+  line-height:1;
+}
+tr:hover .row-link-btn, tr.sel .row-link-btn, .row-link-btn.active{
+  opacity:1;
+}
+.row-link-btn:hover{
+  background:rgba(37,99,235,0.1);
+  color:var(--sw);
+  border-color:rgba(37,99,235,0.3);
+}
+
+.row-link-popover{
+  position:fixed;
+  z-index:9999;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.16);
+  width:320px;
+  max-width:92vw;
+  padding:10px;
+  font-size:12px;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+}
+.row-link-popover.open{
+  display:flex;
+}
+.rlp-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line-soft);
+  padding-bottom:6px;
+}
+.rlp-head h4{
+  margin:0;
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.rlp-filters{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+}
+.rlp-filter-btn{
+  background:none;
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:2px 6px;
+  font-size:11px;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all .1s;
+}
+.rlp-filter-btn:hover{
+  color:var(--ink);
+  background:#f3f4f6;
+}
+.rlp-filter-btn.active{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+  font-weight:600;
+}
+.rlp-list{
+  max-height:220px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.rlp-item{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 7px;
+  border-radius:5px;
+  cursor:pointer;
+  user-select:none;
+  font-size:12px;
+  transition:background .1s;
+}
+.rlp-item:hover{
+  background:#f8fafc;
+}
+.rlp-item.selected{
+  background:rgba(37,99,235,0.06);
+}
+.rlp-item input[type=checkbox]{
+  cursor:pointer;
+  margin:0;
+}
+.rlp-item-info{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+}
+.rlp-item-top{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.rlp-item-title{
+  font-size:11.5px;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.content{
+  flex:1;
+  min-height:0;
+  height:100%;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.groupline{
+  position:sticky;top:0;z-index:2;background:var(--panel);
+  display:flex;align-items:baseline;gap:10px;
+  padding:14px 18px 7px;border-bottom:1px solid var(--line);
+}
+.groupline h3{margin:0;font-size:13px;font-weight:600}
+.groupline span{font-size:12px;color:var(--muted)}
+
+table.tree{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+  border:1px solid rgba(0,0,0,0.16);
+}
+table.tree th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  background:#f7f8f9;
+  text-align:left;
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--ink);
+  padding:6px 10px;
+  border-bottom:1px solid rgba(0,0,0,0.20);
+  border-right:1px solid rgba(0,0,0,0.12);
+  white-space:nowrap;
+}
+table.tree th:last-child{
+  border-right:none;
+}
+table.tree td{
+  padding:0;
+  border-bottom:1px solid rgba(0,0,0,0.14);
+  border-right:1px solid rgba(0,0,0,0.10);
+  vertical-align:middle;
+  user-select:text;
+  -webkit-user-select:text;
+  word-break:break-word;
+  overflow-wrap:break-word;
+  transition:background .12s;
+}
+table.tree td:last-child{
+  border-right:none;
+}
+
+/* ---------- satır tür renkleri (daha belirgin transparan) ---------- */
+/* SYS (Sistem - Yeşil) */
+tr.row-SYS td{background:rgba(27,122,82,0.11)}
+tr.row-SYS:hover td{background:rgba(27,122,82,0.18)}
+tr.row-SYS.sel td{background:rgba(27,122,82,0.28)}
+tr.row-SYS.sel td:first-child{box-shadow:inset 4px 0 0 var(--sys)}
+
+/* SW (Yazılım - Mavi) */
+tr.row-SW td{background:rgba(37,99,235,0.11)}
+tr.row-SW:hover td{background:rgba(37,99,235,0.18)}
+tr.row-SW.sel td{background:rgba(37,99,235,0.28)}
+tr.row-SW.sel td:first-child{box-shadow:inset 4px 0 0 var(--sw)}
+
+/* EPIC (Epic - Mor) */
+tr.row-EPIC td{background:rgba(124,58,237,0.12)}
+tr.row-EPIC:hover td{background:rgba(124,58,237,0.19)}
+tr.row-EPIC.sel td{background:rgba(124,58,237,0.29)}
+tr.row-EPIC.sel td:first-child{box-shadow:inset 4px 0 0 var(--epic)}
+
+/* STORY (Story - Turkuaz) */
+tr.row-STORY td{background:rgba(13,148,136,0.11)}
+tr.row-STORY:hover td{background:rgba(13,148,136,0.18)}
+tr.row-STORY.sel td{background:rgba(13,148,136,0.28)}
+tr.row-STORY.sel td:first-child{box-shadow:inset 4px 0 0 var(--story)}
+
+/* TASK (Task - Kahverengi) */
+tr.row-TASK td{background:rgba(146,64,14,0.11)}
+tr.row-TASK:hover td{background:rgba(146,64,14,0.18)}
+tr.row-TASK.sel td{background:rgba(146,64,14,0.28)}
+tr.row-TASK.sel td:first-child{box-shadow:inset 4px 0 0 var(--task)}
+
+/* TEST (Test - Rose / Gül Rengi) */
+tr.row-TEST td{background:rgba(225,29,72,0.06)}
+tr.row-TEST:hover td{background:rgba(225,29,72,0.12)}
+tr.row-TEST.sel td{background:rgba(225,29,72,0.22)}
+tr.row-TEST.sel td:first-child{box-shadow:inset 4px 0 0 var(--test)}
+
+.cell{padding:7px 10px;display:flex;align-items:center;gap:8px;min-height:34px;user-select:text;-webkit-user-select:text;min-width:0}
+.cell.wrap{align-items:flex-start}
+.idcell{font-family:var(--mono);font-size:12px;white-space:nowrap;user-select:text;-webkit-user-select:text}
+.idcell a{color:inherit;text-decoration:none;border-bottom:1px dotted #aab0b8}
+.twist{
+  width:16px;height:16px;flex:none;border:0;background:none;color:var(--muted);
+  display:grid;place-items:center;border-radius:3px;font-size:10px;line-height:1;
+  user-select:none;
+}
+.twist:hover{background:#e6e8ec;color:var(--ink)}
+.twist.hidden{visibility:hidden}
+.indent{flex:none;align-self:stretch;border-left:1px solid var(--line);margin:-7px 0 -7px 0}
+.title-txt{
+  white-space:normal;
+  word-break:break-word;
+  overflow-wrap:break-word;
+  line-height:1.45;
+  user-select:text;
+  -webkit-user-select:text;
+  flex:1;
+  min-width:0;
+}
+.title-txt.done{color:var(--muted)}
+.chip{
+  font-family:var(--mono);font-size:10.5px;padding:1.5px 6px;border-radius:4px;
+  font-weight:600;flex:none;letter-spacing:.02em;border:1px solid transparent;
+}
+.chip.SYS{color:#156341;background:rgba(27,122,82,0.12);border-color:rgba(27,122,82,0.3)}
+.chip.SW{color:#1d4ed8;background:rgba(37,99,235,0.12);border-color:rgba(37,99,235,0.3)}
+.chip.EPIC{color:#6d28d9;background:rgba(124,58,237,0.13);border-color:rgba(124,58,237,0.3)}
+.chip.STORY{color:#0f766e;background:rgba(13,148,136,0.12);border-color:rgba(13,148,136,0.3)}
+.chip.TASK{color:#78350f;background:rgba(146,64,14,0.12);border-color:rgba(146,64,14,0.3)}
+.chip.TEST{color:#be123c;background:rgba(225,29,72,0.12);border-color:rgba(225,29,72,0.3)}
+.dot{width:7px;height:7px;border-radius:50%;flex:none;background:#c2c8d0}
+.dot.acik{background:#c2c8d0}
+.dot.analizde{background:#c9a227}
+.dot.onayli{background:#3a5a9e}
+.dot.gelistirmede{background:#7a3e9d}
+.dot.dogrulandi{background:#2f7d5f}
+.dot.iptal{background:#a23b2e}
+.dot.taslak{background:#94a3b8}
+.dot.hazir{background:#3b82f6}
+.dot.kosuluyor{background:#8b5cf6}
+.dot.basarili{background:#16a34a}
+.dot.basarisiz{background:#dc2626}
+.dot.engellendi{background:#d97706}
+.muted{color:var(--muted)}
+.small{font-size:12px}
+.rowbtn{opacity:0;border:1px solid var(--line);background:#fff;border-radius:5px;padding:2px 7px;font-size:12px;color:var(--muted)}
+tr:hover .rowbtn,tr.sel .rowbtn{opacity:1}
+.rowbtn:hover{color:var(--ink);border-color:#c2c8d0}
+.linkchip{font-family:var(--mono);font-size:11px;color:var(--sw);border-bottom:1px dotted;cursor:pointer;margin-right:6px}
+.empty{padding:56px 24px;text-align:center;color:var(--muted);max-width:460px;margin:0 auto}
+.empty h3{color:var(--ink);font-size:15px;margin:0 0 6px}
+
+/* ---------- sağ panel ---------- */
+.inspector{border-left:1px solid var(--line);background:#fafbfb;overflow:auto;min-width:0}
+.app:not(.inspect) .inspector{display:none}
+.insp-head{position:sticky;top:0;background:#fafbfb;border-bottom:1px solid var(--line);padding:14px 16px;z-index:2}
+.insp-head .row{display:flex;align-items:center;gap:8px}
+.insp-head input.idfield{
+  font-family:var(--mono);font-size:13px;font-weight:700;border:1px solid var(--line);
+  background:#fff;border-radius:6px;padding:4px 8px;width:160px;color:var(--ink);
+  transition:all .12s;
+}
+.insp-head input.idfield:hover{border-color:#b5bac2}
+.insp-head input.idfield:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(27,122,82,0.15);
+  outline:none;
+}
+.insp-head input.idfield.invalid-id{
+  border-color:#e11d48;
+  background:#fff1f2;
+  color:#be123c;
+  box-shadow:0 0 0 2px rgba(225,29,72,0.15);
+}
+.field{padding:11px 16px;border-bottom:1px solid var(--line-soft)}
+.field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+.field input[type=text],.field select,.field textarea{
+  width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 9px;background:#fff
+}
+.field textarea{min-height:76px;resize:vertical;line-height:1.5}
+.field .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.linklist{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.linklist .lk{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11.5px;
+  border:1px solid var(--line);background:#fff;border-radius:12px;padding:2px 4px 2px 8px;
+  transition:background .12s, border-color .12s;
+}
+.linklist .lk.bad{border-color:#e0b4ad;color:var(--warn)}
+.linklist .lk button{border:0;background:none;color:var(--muted);padding:0 3px;line-height:1;cursor:pointer}
+.linklist .lk button:hover{color:var(--warn)}
+.insp-foot{padding:14px 16px;display:flex;gap:8px}
+.danger{color:var(--warn);border-color:#e6c3bd}
+.danger:hover{background:#fbf1ef;border-color:#d9a79f}
+
+/* ---------- gelişmiş bağlantı seçici (rich link dropdown) ---------- */
+.rich-select-box{position:relative;width:100%}
+.rich-select-trigger{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:6px 10px;
+  font-size:13px;
+  cursor:pointer;
+  transition:border-color .15s, box-shadow .15s, background .15s;
+  user-select:none;
+}
+.rich-select-trigger:hover{border-color:#b4bcc6;background:#fafbfc}
+.rich-select-trigger.open{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,93,80,0.15);background:#fff}
+.rich-select-trigger .ph{color:var(--muted);font-size:12.5px;display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rich-select-trigger .sel-val{display:flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;min-width:0}
+.rich-select-trigger .caret{font-size:10px;color:var(--muted);transition:transform .2s ease;flex:none}
+.rich-select-trigger.open .caret{transform:rotate(180deg)}
+
+.rich-dropdown{
+  position:absolute;
+  top:calc(100% + 4px);
+  left:0;
+  right:0;
+  z-index:40;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  box-shadow:0 12px 30px rgba(15,23,42,0.16), 0 2px 6px rgba(0,0,0,0.06);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+.two .rich-dropdown{width:320px;right:0;left:auto}
+.rich-dropdown.open{display:flex}
+
+.rich-drop-search{
+  padding:8px;
+  border-bottom:1px solid var(--line-soft);
+  background:#f8f9fa;
+  display:flex;
+  gap:6px;
+}
+.rich-drop-search input{
+  width:100%;
+  padding:6px 9px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  font-size:12px;
+  background:#fff;
+}
+.rich-drop-search input:focus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);outline:none}
+
+.rich-drop-filters{
+  display:flex;
+  gap:4px;
+  padding:6px 8px;
+  border-bottom:1px solid var(--line-soft);
+  background:#fff;
+  overflow-x:auto;
+}
+.rich-filter-btn{
+  background:none;
+  border:1px solid transparent;
+  border-radius:4px;
+  padding:2px 7px;
+  font-size:11px;
+  color:var(--muted);
+  white-space:nowrap;
+  cursor:pointer;
+  transition:.12s;
+}
+.rich-filter-btn:hover{background:#f0f2f5;color:var(--ink)}
+.rich-filter-btn.active{background:#eaf0ee;color:var(--accent);font-weight:600;border-color:#c8dbd5}
+
+.rich-drop-list{
+  max-height:220px;
+  overflow-y:auto;
+  padding:2px 0;
+}
+.rich-drop-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 10px;
+  cursor:pointer;
+  border-bottom:1px solid #f4f6f8;
+  transition:background .1s;
+}
+.rich-drop-item:last-child{border-bottom:0}
+.rich-drop-item:hover, .rich-drop-item.highlighted{background:#f0f5f9}
+.rich-drop-item.selected{background:#eef7f4}
+.rich-drop-item.selected.highlighted{background:#e4f2ee}
+.rich-drop-item .check{
+  width:16px;
+  height:16px;
+  border:1.5px solid var(--line);
+  border-radius:4px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:none;
+  font-size:11px;
+  font-weight:bold;
+  color:#fff;
+  background:#fff;
+  transition:.12s;
+}
+.rich-drop-item.selected .check{
+  background:var(--accent);
+  border-color:var(--accent);
+}
+.rich-drop-item-content{flex:1;min-width:0}
+.rich-drop-item-head{display:flex;align-items:center;gap:6px}
+.rich-drop-item-id{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink)}
+.rich-drop-item-title{font-size:12px;color:#2c323a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.rich-drop-item-sub{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:2px;
+  font-size:10.5px;
+  color:var(--muted);
+}
+.rich-drop-custom-add{
+  padding:8px 12px;
+  font-size:12px;
+  color:var(--accent);
+  background:#f6faf8;
+  border-top:1px solid var(--line-soft);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-weight:500;
+}
+.rich-drop-custom-add:hover{background:#edf6f3;text-decoration:underline}
+.rich-drop-empty{padding:14px;text-align:center;color:var(--muted);font-size:12px}
+
+/* ---------- matris & izleme ---------- */
+.matrix{padding:0 0 40px}
+.trace-kpi-bar{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:12px;
+  padding:14px 18px;
+  background:#f8fafc;
+  border-bottom:1px solid var(--line);
+}
+.trace-kpi-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.trace-kpi-num{
+  font-size:18px;
+  font-weight:700;
+  color:var(--ink);
+  font-family:var(--mono);
+}
+.trace-kpi-lbl{
+  font-size:11.5px;
+  color:var(--muted);
+  font-weight:500;
+}
+
+table.mx{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+table.mx th{background:#f7f8f9;text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1}
+table.mx td{padding:9px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle;word-break:break-word;overflow-wrap:break-word}
+table.mx tr:hover td{background:#f8fafc}
+table.mx td.idc{font-family:var(--mono);font-size:12px;white-space:nowrap}
+
+.trace-item-box{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  min-width:0;
+}
+.trace-item-head{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.trace-item-title{
+  font-size:12px;
+  color:#2e3640;
+  line-height:1.35;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.trace-arrow{
+  color:#94a3b8;
+  font-weight:bold;
+  font-size:14px;
+  user-select:none;
+  text-align:center;
+}
+
+.cover{font-size:11.5px;padding:2px 8px;border-radius:10px;white-space:nowrap;font-weight:500;display:inline-block}
+.cover.ok{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0}
+.cover.sw{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+.cover.agile{background:#f3e8ff;color:#7e22ce;border:1px solid #e9d5ff}
+.cover.part{background:#fef3c7;color:#b45309;border:1px solid #fde68a}
+.cover.no{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca}
+
+.gap-filter-bar{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:10px 18px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.gap-filter-btn{
+  background:none;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:5px 11px;
+  font-size:12px;
+  color:var(--muted);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:all .12s;
+  white-space:nowrap;
+}
+.gap-filter-btn:hover{background:#f8fafc;color:var(--ink)}
+.gap-filter-btn.active{background:#23303d;border-color:#23303d;color:#fff}
+.gap-filter-btn .gb-count{
+  background:rgba(0,0,0,0.08);
+  font-size:10.5px;
+  padding:1px 5px;
+  border-radius:10px;
+}
+.gap-filter-btn.active .gb-count{
+  background:rgba(255,255,255,0.22);
+  color:#fff;
+}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:none;place-items:center;z-index:150;padding:20px}
+.modal.open{display:grid}
+.sheet{background:#fff;border-radius:10px;width:min(720px,100%);max-height:86vh;overflow:auto;box-shadow:0 18px 50px rgba(20,25,32,.25)}
+.sheet header{padding:16px 20px 10px;border-bottom:1px solid var(--line)}
+.sheet header h3{margin:0;font-size:15px}
+.sheet header p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.sheet .body{padding:16px 20px}
+.sheet footer{padding:12px 20px 18px;display:flex;gap:8px;justify-content:flex-end}
+.sheet textarea{width:100%;min-height:190px;font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:10px;resize:vertical}
+.opts{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:10px 0;font-size:13px;color:var(--muted)}
+.opts label{display:inline-flex;align-items:center;gap:5px}
+
+/* ---------- Çalışma Alanı (Proje) Modalı ---------- */
+.ws-modal-sheet{
+  width: min(480px, 94vw);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: wsModalIn .18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes wsModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.ws-modal-header{
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fbfcfd;
+}
+.ws-modal-title-row{
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ws-modal-icon-box{
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  background: #eaf5ee;
+  color: #1b7a52;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 1px solid #cce5d6;
+}
+.ws-modal-title-wrap h3{
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.ws-modal-title-wrap p{
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.ws-modal-close{
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.ws-modal-body{
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ws-form-group{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ws-form-label{
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ws-form-label .req{
+  color: var(--warn);
+}
+.ws-input-wrap{
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.ws-input-icon{
+  position: absolute;
+  left: 11px;
+  color: #64748b;
+  font-size: 14px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.ws-modal-input{
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  font-size: 13.5px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+.ws-modal-input:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(27, 122, 82, 0.15);
+}
+.ws-modal-input.is-invalid{
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px rgba(162, 59, 46, 0.15);
+}
+.ws-form-error{
+  font-size: 12px;
+  color: var(--warn);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.ws-form-help{
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.ws-modal-info-box{
+  background: #f8fafc;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ws-modal-footer{
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--line-soft);
+  background: #fbfcfd;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---------- CSV Dışa Aktarma Modalı Stilleri ---------- */
+.export-scope-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  gap:8px;
+  margin-bottom:12px;
+}
+.export-scope-card{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#fafbfc;
+  cursor:pointer;
+  transition:all .15s;
+  font-size:12px;
+}
+.export-scope-card:hover{
+  background:#f1f5f9;
+  border-color:#cbd5e1;
+}
+.export-scope-card:has(input:checked){
+  background:#eff6ff;
+  border-color:#2563eb;
+  color:#1e40af;
+  box-shadow:0 0 0 1px #2563eb;
+}
+.export-scope-card input{
+  margin:0;
+  accent-color:#2563eb;
+}
+.export-scope-content{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap:6px;
+}
+.export-scope-title{
+  font-weight:500;
+}
+.export-scope-badge{
+  font-size:10.5px;
+  font-weight:600;
+  background:rgba(0,0,0,0.07);
+  padding:1px 6px;
+  border-radius:10px;
+}
+.export-scope-card:has(input:checked) .export-scope-badge{
+  background:#2563eb;
+  color:#fff;
+}
+.export-file-preview{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#f8fafc;
+  border:1px dashed var(--line);
+  border-radius:6px;
+  padding:8px 12px;
+  margin-bottom:10px;
+  font-size:12px;
+}
+.efp-label{
+  color:var(--muted);
+}
+.efp-name{
+  font-family:var(--mono);
+  font-weight:600;
+  color:var(--ink);
+  word-break:break-all;
+}
+
+/* ---------- detay modalı ---------- */
+.sheet.detail-sheet{
+  width:min(900px, 100%);
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  max-height:90vh;
+}
+.detail-sheet header{
+  background:#fbfcfd;
+  padding:16px 22px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.detail-header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  width:100%;
+}
+.detail-header-badges{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.detail-header-id{
+  font-family:var(--mono);
+  font-size:16px;
+  font-weight:700;
+  color:var(--ink);
+  letter-spacing:-.01em;
+}
+.detail-badge-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:#f0f2f5;
+  padding:3px 9px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:500;
+  color:#3a424e;
+}
+.detail-head-title{
+  margin:0;
+  font-size:16px;
+  font-weight:600;
+  line-height:1.45;
+  color:var(--ink);
+  letter-spacing:-.01em;
+  word-break:break-word;
+  overflow-wrap:break-word;
+}
+
+.detail-tab-nav{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  padding:0 22px;
+  background:#f8fafc;
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.detail-tab-btn{
+  background:none;
+  border:0;
+  border-bottom:2px solid transparent;
+  padding:10px 14px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  transition:all .12s;
+  margin-bottom:-1px;
+}
+.detail-tab-btn:hover{
+  color:var(--ink);
+}
+.detail-tab-btn.active{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+  background:#fff;
+  border-top-left-radius:6px;
+  border-top-right-radius:6px;
+  border-top:1px solid var(--line);
+  border-left:1px solid var(--line);
+  border-right:1px solid var(--line);
+}
+.detail-tab-btn .dtab-count{
+  background:rgba(0,0,0,0.07);
+  font-size:11px;
+  padding:1px 6px;
+  border-radius:10px;
+  font-weight:600;
+}
+.detail-tab-btn.active .dtab-count{
+  background:rgba(27,122,82,0.12);
+  color:var(--accent);
+}
+
+.detail-sheet .body{
+  padding:20px 22px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  overflow-y:auto;
+}
+.detail-tab-pane{
+  display:none;
+}
+.detail-tab-pane.active{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.detail-desc-box{
+  background:#f8f9fa;
+  border:1px solid var(--line-soft);
+  border-left:4px solid var(--accent);
+  border-radius:6px;
+  padding:14px 16px;
+  font-size:13.5px;
+  line-height:1.6;
+  color:#2e3640;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.detail-meta-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+  gap:10px;
+}
+.detail-meta-card{
+  background:#fafbfc;
+  border:1px solid var(--line-soft);
+  border-radius:7px;
+  padding:10px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.detail-meta-card .meta-lbl{
+  font-size:11px;
+  font-weight:600;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.detail-meta-card .meta-val{
+  font-size:13px;
+  font-weight:500;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:22px;
+}
+.detail-section{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.detail-section-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--ink);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.detail-section-title .count{
+  background:var(--line);
+  color:var(--muted);
+  font-size:11px;
+  padding:1px 6px;
+  border-radius:10px;
+}
+.detail-card-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+  gap:8px;
+}
+.detail-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:9px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  cursor:pointer;
+  transition:all .15s;
+  text-decoration:none;
+}
+.detail-card:hover{
+  border-color:var(--accent);
+  background:#fbfdfc;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
+.detail-card .dc-head{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:600;
+}
+.detail-card .dc-title{
+  font-size:12px;
+  color:var(--ink);
+  line-height:1.35;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+.id-link{
+  font-family:var(--mono);
+  font-weight:600;
+  color:inherit;
+  text-decoration:none;
+  border-bottom:1px dotted #aab0b8;
+  cursor:pointer;
+}
+.id-link:hover{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+}
+
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(8px);background:#22282f;color:#fff;padding:9px 16px;border-radius:7px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:960px){
+  .navbar{flex-direction:column;align-items:stretch;height:auto;padding:10px 14px;gap:8px}
+  .nav-left{flex-direction:column;align-items:flex-start;gap:8px}
+  .nav-tabs{overflow-x:auto;width:100%;padding-bottom:2px}
+  .nav-right{justify-content:flex-end;width:100%}
+  .app.inspect{grid-template-columns:1fr}
+  .app.inspect .main{display:none}
+  .inspector{border-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="navbar">
+  <div class="nav-left">
+    <button class="hamburger-btn" id="btnHamburger" title="Çalışma Alanları (Projeler)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      </div>
+      <div class="brand-text">
+        <h1 id="brandProjectName">Gereksinim ve İş Takibi</h1>
+        <span id="brandWorkspaceLabel">Proje 1</span>
+      </div>
+    </div>
+    <nav class="nav-tabs" id="nav"></nav>
+  </div>
+  <div class="nav-right">
+    <div id="saveState" class="save-status"></div>
+    <button class="nav-btn" id="btnExport" title="CSV formatında indir">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <span>İndir</span>
+    </button>
+    <button class="nav-btn nav-btn-save" id="btnSave" disabled title="Kaydedilmemiş değişiklik yok">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      <span>Kaydet</span>
+    </button>
+  </div>
+</header>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="workspaceDrawer">
+  <div class="drawer-head">
+    <h3>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <span>Çalışma Alanları</span>
+    </h3>
+    <button class="drawer-close" id="btnCloseDrawer" title="Menüyü Kapat">✕</button>
+  </div>
+  <div class="drawer-actions">
+    <button class="btn-new-ws" id="btnNewWorkspace">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <span>Yeni Çalışma Alanı Ekle</span>
+    </button>
+    <div class="drawer-csv-actions">
+      <button class="btn-drawer-csv" id="btnDrawerImport" title="Aktif projeye CSV içe aktar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        <span>CSV İçe Aktar</span>
+      </button>
+      <button class="btn-drawer-csv" id="btnDrawerExport" title="Aktif projeden CSV indir">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>CSV İndir</span>
+      </button>
+    </div>
+  </div>
+  <div class="drawer-body" id="workspaceList"></div>
+  <div class="drawer-foot">
+    <span>10 adede kadar bağımsız çalışma alanı (proje) oluşturabilir, her birinde ayrı CSV listeleri yönetebilirsiniz.</span>
+  </div>
+</aside>
+
+<div class="app" id="app">
+  <main class="main">
+    <div class="topbar">
+      <h2 id="viewTitle">Gereksinimler</h2>
+      <div class="search"><input id="q" type="search" placeholder="ID, başlık, etiket ara... (/)"></div>
+      <div class="grow"></div>
+      <div id="addBtns" style="display:flex;gap:6px"></div>
+    </div>
+    <div class="content" id="view"></div>
+  </main>
+
+  <aside class="inspector" id="inspector"></aside>
+</div>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<!-- Proje / Çalışma Alanı Ekle & Düzenle Modalı -->
+<div class="modal" id="wsModal" role="dialog" aria-modal="true" aria-labelledby="wsModalTitle">
+  <div class="sheet ws-modal-sheet">
+    <header class="ws-modal-header">
+      <div class="ws-modal-title-row">
+        <div class="ws-modal-icon-box" id="wsModalIcon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div class="ws-modal-title-wrap">
+          <h3 id="wsModalTitle">Yeni Çalışma Alanı Ekle</h3>
+          <p id="wsModalSubtitle">Gereksinimleriniz için yeni bir proje çalışma alanı oluşturun.</p>
+        </div>
+      </div>
+      <button type="button" class="btn ghost ws-modal-close" id="wsModalClose" title="Kapat">✕</button>
+    </header>
+    <form id="wsModalForm" novalidate onsubmit="return false;">
+      <div class="ws-modal-body">
+        <div class="ws-form-group">
+          <label for="wsModalInput" class="ws-form-label">
+            <span>Proje Adı <span class="req">*</span></span>
+            <span id="wsModalCharCount" style="font-size:11px;font-weight:400;color:var(--muted)">0/60</span>
+          </label>
+          <div class="ws-input-wrap">
+            <span class="ws-input-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            </span>
+            <input type="text" id="wsModalInput" class="ws-modal-input" maxlength="60" placeholder="Örn: Proje 2, Mobil Bankacılık..." autocomplete="off" spellcheck="false" required>
+          </div>
+          <div class="ws-form-error" id="wsModalError" style="display:none"></div>
+          <div class="ws-form-help" id="wsModalHelp">
+            Her çalışma alanı kendi gereksinim ağacını, filtrelerini ve CSV verilerini bağımsız olarak saklar.
+          </div>
+        </div>
+        <div class="ws-modal-info-box" id="wsModalInfoBox">
+          <span id="wsModalInfoLeft">Toplam Kapasite</span>
+          <strong id="wsModalInfoRight">2 / 10 Proje</strong>
+        </div>
+      </div>
+      <footer class="ws-modal-footer">
+        <button type="button" class="btn ghost" id="wsModalCancel">Vazgeç</button>
+        <button type="submit" class="btn primary" id="wsModalSubmit">
+          <span id="wsModalSubmitIcon">＋</span> <span id="wsModalSubmitText">Proje Oluştur</span>
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+<div id="colFilterPopover" class="col-filter-popover"></div>
+<div id="rowLinkPickerPopover" class="row-link-popover"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   Veri modeli
+   ========================================================================= */
+const TYPES = {
+  SYS:   {label:'Sistem gereksinimi', prefix:'SG',  dotted:true},
+  SW:    {label:'Yazılım gereksinimi', prefix:'YG',  dotted:true},
+  EPIC:  {label:'Epic',   prefix:'EP',  dotted:false},
+  STORY: {label:'Story',  prefix:'ST',  dotted:false},
+  TASK:  {label:'Task',   prefix:'GOR', dotted:false},
+  TEST:  {label:'Test senaryosu', prefix:'TC', dotted:false}
+};
+const STATUS = ['Açık','Analizde','Onaylı','Geliştirmede','Doğrulandı','İptal'];
+const TEST_STATUS = ['Taslak','Hazır','Koşuluyor','Başarılı','Başarısız','Engellendi'];
+const TEST_STATUS_ICONS = {
+  'Taslak': '✐',
+  'Hazır': '◎',
+  'Koşuluyor': '▸',
+  'Başarılı': '✓',
+  'Başarısız': '✕',
+  'Engellendi': '⊘'
+};
+const TEST_TYPES = ['Birim Testi','Entegrasyon Testi','Sistem Testi','Kabul Testi','Regresyon Testi','Performans Testi','Güvenlik Testi'];
+const PRIO   = ['Yüksek','Orta','Düşük'];
+const VERIF  = ['','Test','Analiz','Muayene','Gösterim'];
+const FIELDS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType'];
+const WORKSPACES_KEY = 'reqtool:workspaces:v2';
+const LEGACY_KEY = 'reqtool:v1';
+const MAX_WORKSPACES = 10;
+
+let isDirty = false;
+let workspaceState = {
+  activeId: 'ws-1',
+  workspaces: []
+};
+
+let state = {
+  items:[],
+  sel:null,
+  view:'sys',
+  q:'',
+  colFilters:{ status:[], priority:[], testType:[], points:[], trace:[], tags:[] },
+  collapsed:{}
+};
+
+function getActiveWorkspace(){
+  if(!workspaceState.workspaces || !workspaceState.workspaces.length) return null;
+  return workspaceState.workspaces.find(w => w.id === workspaceState.activeId) || workspaceState.workspaces[0];
+}
+
+function setDirty(dirty){
+  isDirty = !!dirty;
+  const btn = document.getElementById('btnSave');
+  if(btn){
+    btn.disabled = !isDirty;
+    btn.classList.toggle('is-dirty', isDirty);
+    btn.title = isDirty ? 'Değişiklikleri kaydet' : 'Kaydedilmemiş değişiklik yok';
+  }
+  if(isDirty){
+    setSaveState('● Kaydedilmemiş değişiklik');
+  }
+}
+
+function setSaveState(t){
+  const el = document.getElementById('saveState');
+  if(el) el.textContent = t;
+}
+
+function saveCurrentToWorkspace(){
+  const ws = getActiveWorkspace();
+  if(ws){
+    ws.data = {
+      items: state.items,
+      collapsed: state.collapsed,
+      view: state.view,
+      sel: state.sel,
+      colFilters: state.colFilters
+    };
+    ws.updatedAt = Date.now();
+  }
+}
+
+function save(){
+  saveCurrentToWorkspace();
+  setDirty(true);
+  updateWorkspaceHeaderInfo();
+}
+
+function persistAllWorkspaces(showToast = false){
+  try{
+    saveCurrentToWorkspace();
+    const str = JSON.stringify(workspaceState);
+    if(typeof localStorage !== 'undefined'){
+      localStorage.setItem(WORKSPACES_KEY, str);
+      const activeWs = getActiveWorkspace();
+      if(activeWs && activeWs.data){
+        localStorage.setItem(LEGACY_KEY, JSON.stringify(activeWs.data));
+      }
+    }
+    if(typeof window !== 'undefined' && window.storage && typeof window.storage.set === 'function'){
+      window.storage.set(WORKSPACES_KEY, str);
+    }
+    setDirty(false);
+    setSaveState('Kaydedildi · ' + new Date().toLocaleTimeString('tr-TR'));
+    if(showToast) toast('Tüm değişiklikler başarıyla kaydedildi.');
+    return true;
+  }catch(e){
+    console.error('Kayıt hatası:', e);
+    setSaveState('Kayıt hatası oluştu');
+    return false;
+  }
+}
+
+function applyWorkspaceToState(ws){
+  if(!ws || !ws.data) return;
+  const d = ws.data;
+  state.items = (d.items || []).map(normalize);
+  state.collapsed = d.collapsed || {};
+  state.colFilters = Object.assign({ status:[], priority:[], testType:[], points:[], trace:[], tags:[] }, d.colFilters||{});
+  if(d.view && ['sys','sw','req','agile','test','gaps'].includes(d.view)){
+    state.view = d.view === 'req' ? 'sys' : d.view;
+  } else {
+    state.view = 'sys';
+  }
+  if(d.sel && state.items.some(i=>i.id===d.sel)) state.sel = d.sel;
+  else state.sel = null;
+}
+
+async function loadWorkspaces(){
+  try{
+    let str = null;
+    if(typeof localStorage !== 'undefined'){
+      str = localStorage.getItem(WORKSPACES_KEY);
+    }
+    if(!str && typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function'){
+      const r = await window.storage.get(WORKSPACES_KEY);
+      if(r && r.value) str = r.value;
+    }
+    if(str){
+      workspaceState = JSON.parse(str);
+    }
+  }catch(e){
+    console.error('Workspaces okuma hatası:', e);
+  }
+
+  // Geçmiş tekil projeden (legacy) geçiş / oluşturma
+  if(!workspaceState.workspaces || !workspaceState.workspaces.length){
+    let legacyData = null;
+    try{
+      let legStr = (typeof localStorage !== 'undefined') ? localStorage.getItem(LEGACY_KEY) : null;
+      if(!legStr && typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function'){
+        const r = await window.storage.get(LEGACY_KEY);
+        if(r && r.value) legStr = r.value;
+      }
+      if(legStr) legacyData = JSON.parse(legStr);
+    }catch(e){}
+
+    if(legacyData && Array.isArray(legacyData.items) && legacyData.items.length > 0){
+      workspaceState = {
+        activeId: 'ws-1',
+        workspaces: [{
+          id: 'ws-1',
+          name: 'Proje 1',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          data: legacyData
+        }]
+      };
+    } else {
+      workspaceState = {
+        activeId: 'ws-1',
+        workspaces: [{
+          id: 'ws-1',
+          name: 'Proje 1',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          data: { items:[], collapsed:{}, view:'sys', sel:null, colFilters:{} }
+        }]
+      };
+    }
+  }
+
+  let active = getActiveWorkspace();
+  if(!active){
+    active = workspaceState.workspaces[0];
+    workspaceState.activeId = active.id;
+  }
+
+  applyWorkspaceToState(active);
+
+  // İlk projede kayıt yoksa örnekleri yükle
+  if(!state.items.length && workspaceState.workspaces.length === 1){
+    loadSample();
+    saveCurrentToWorkspace();
+    persistAllWorkspaces(false);
+  }
+
+  setDirty(false);
+  updateWorkspaceHeaderInfo();
+  return true;
+}
+
+function updateWorkspaceHeaderInfo(){
+  const ws = getActiveWorkspace();
+  const lbl = document.getElementById('brandWorkspaceLabel');
+  if(lbl && ws) {
+    lbl.textContent = ws.name;
+  }
+  const count = (workspaceState.workspaces||[]).length;
+  const btnNew = document.getElementById('btnNewWorkspace');
+  if(btnNew){
+    btnNew.disabled = (count >= MAX_WORKSPACES);
+    btnNew.title = count >= MAX_WORKSPACES ? 'Maksimum 10 projeye ulaşıldı' : 'Yeni çalışma alanı ekle';
+    const span = btnNew.querySelector('span');
+    if(span) span.textContent = `Yeni Çalışma Alanı Ekle (${count}/${MAX_WORKSPACES})`;
+  }
+}
+
+function switchWorkspace(targetId){
+  if(targetId === workspaceState.activeId){
+    closeDrawer();
+    return;
+  }
+  persistAllWorkspaces(false);
+
+  const target = workspaceState.workspaces.find(w => w.id === targetId);
+  if(!target) return;
+
+  workspaceState.activeId = targetId;
+  applyWorkspaceToState(target);
+  setDirty(false);
+  updateWorkspaceHeaderInfo();
+  render();
+  closeDrawer();
+  toast(`'${target.name}' çalışma alanına geçildi.`);
+}
+
+let currentWsModalMode = 'create';
+let currentWsModalTargetId = null;
+
+function openWorkspaceModal(mode = 'create', targetId = null){
+  currentWsModalMode = mode;
+  currentWsModalTargetId = targetId;
+
+  const modal = document.getElementById('wsModal');
+  const icon = document.getElementById('wsModalIcon');
+  const title = document.getElementById('wsModalTitle');
+  const subtitle = document.getElementById('wsModalSubtitle');
+  const input = document.getElementById('wsModalInput');
+  const error = document.getElementById('wsModalError');
+  const help = document.getElementById('wsModalHelp');
+  const submitText = document.getElementById('wsModalSubmitText');
+  const submitIcon = document.getElementById('wsModalSubmitIcon');
+  const infoLeft = document.getElementById('wsModalInfoLeft');
+  const infoRight = document.getElementById('wsModalInfoRight');
+  const charCount = document.getElementById('wsModalCharCount');
+
+  if(!modal || !input) return;
+
+  error.style.display = 'none';
+  error.textContent = '';
+  input.classList.remove('is-invalid');
+
+  const count = (workspaceState.workspaces || []).length;
+
+  if(mode === 'create'){
+    if(count >= MAX_WORKSPACES){
+      toast(`En fazla ${MAX_WORKSPACES} çalışma alanı oluşturabilirsiniz.`);
+      return;
+    }
+    icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+    icon.style.background = '#eaf5ee';
+    icon.style.borderColor = '#cce5d6';
+    icon.style.color = '#1b7a52';
+    title.textContent = 'Yeni Çalışma Alanı (Proje) Ekle';
+    subtitle.textContent = 'Gereksinim ve iş takibiniz için yeni bir proje oluşturun.';
+    submitIcon.textContent = '＋';
+    submitText.textContent = 'Proje Oluştur';
+    input.placeholder = 'Örn: Proje 2, Mobil Bankacılık...';
+    input.value = `Proje ${count + 1}`;
+    help.textContent = 'Her çalışma alanı kendi gereksinim ağacını, filtrelerini ve CSV verilerini bağımsız olarak saklar.';
+    infoLeft.textContent = 'Mevcut Projeler';
+    infoRight.textContent = `${count} / ${MAX_WORKSPACES} Proje`;
+  } else {
+    const ws = (workspaceState.workspaces || []).find(w => w.id === targetId);
+    if(!ws) return;
+    icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+    icon.style.background = '#eff6ff';
+    icon.style.borderColor = '#bfdbfe';
+    icon.style.color = '#2563eb';
+    title.textContent = 'Çalışma Alanı Adını Değiştir';
+    subtitle.textContent = `'${ws.name}' projesinin adını güncelleyin.`;
+    submitIcon.textContent = '✓';
+    submitText.textContent = 'Değişiklikleri Kaydet';
+    input.placeholder = 'Proje adını girin';
+    input.value = ws.name;
+    const itemCount = (ws.data && ws.data.items) ? ws.data.items.length : 0;
+    help.textContent = 'Proje adının değiştirilmesi içerideki gereksinim kayıtlarını veya bağlantılarını etkilemez.';
+    infoLeft.textContent = 'Projedeki Kayıt Sayısı';
+    infoRight.textContent = `${itemCount} kayıt`;
+  }
+
+  if(charCount){
+    charCount.textContent = `${input.value.length}/60`;
+  }
+
+  closeDrawer();
+  modal.classList.add('open');
+
+  setTimeout(() => {
+    input.focus();
+    input.select();
+  }, 50);
+}
+
+function closeWorkspaceModal(){
+  const modal = document.getElementById('wsModal');
+  if(modal){
+    modal.classList.remove('open');
+  }
+}
+
+function handleWorkspaceModalSubmit(){
+  const input = document.getElementById('wsModalInput');
+  const error = document.getElementById('wsModalError');
+  if(!input) return;
+
+  const rawName = input.value.trim();
+  if(!rawName){
+    error.textContent = 'Lütfen bir proje adı girin.';
+    error.style.display = 'block';
+    input.classList.add('is-invalid');
+    input.focus();
+    return;
+  }
+
+  if(currentWsModalMode === 'create'){
+    if((workspaceState.workspaces || []).length >= MAX_WORKSPACES){
+      toast(`En fazla ${MAX_WORKSPACES} çalışma alanı oluşturabilirsiniz.`);
+      closeWorkspaceModal();
+      return;
+    }
+
+    persistAllWorkspaces(false);
+
+    const newWs = {
+      id: 'ws-' + Date.now(),
+      name: rawName,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      data: {
+        items: [],
+        collapsed: {},
+        view: 'sys',
+        sel: null,
+        colFilters: { status:[], priority:[], testType:[], points:[], trace:[], tags:[] }
+      }
+    };
+
+    workspaceState.workspaces.push(newWs);
+    workspaceState.activeId = newWs.id;
+    applyWorkspaceToState(newWs);
+    setDirty(false);
+    persistAllWorkspaces(false);
+    updateWorkspaceHeaderInfo();
+    render();
+    renderWorkspaceList();
+    closeWorkspaceModal();
+    toast(`'${newWs.name}' projesi oluşturuldu. CSV içe aktarabilir veya yeni madde ekleyebilirsiniz.`);
+  } else if(currentWsModalMode === 'rename'){
+    const ws = (workspaceState.workspaces || []).find(w => w.id === currentWsModalTargetId);
+    if(!ws){
+      closeWorkspaceModal();
+      return;
+    }
+    if(rawName === ws.name){
+      closeWorkspaceModal();
+      return;
+    }
+    ws.name = rawName;
+    ws.updatedAt = Date.now();
+    persistAllWorkspaces(false);
+    updateWorkspaceHeaderInfo();
+    renderWorkspaceList();
+    closeWorkspaceModal();
+    toast(`Proje adı '${ws.name}' olarak güncellendi.`);
+  }
+}
+
+function createWorkspace(){
+  openWorkspaceModal('create');
+}
+
+function renameWorkspace(id){
+  openWorkspaceModal('rename', id);
+}
+
+function deleteWorkspace(id){
+  if(workspaceState.workspaces.length <= 1){
+    toast('Son kalan çalışma alanı silinemez.');
+    return;
+  }
+  const ws = workspaceState.workspaces.find(w => w.id === id);
+  if(!ws) return;
+  if(!confirm(`'${ws.name}' ve içerisindeki tüm kayıtlar kalıcı olarak silinecek. Emin misiniz?`)){
+    return;
+  }
+  const wasActive = (workspaceState.activeId === id);
+  workspaceState.workspaces = workspaceState.workspaces.filter(w => w.id !== id);
+  if(wasActive){
+    const nextWs = workspaceState.workspaces[0];
+    workspaceState.activeId = nextWs.id;
+    applyWorkspaceToState(nextWs);
+    setDirty(false);
+    render();
+  }
+  persistAllWorkspaces(false);
+  updateWorkspaceHeaderInfo();
+  renderWorkspaceList();
+  toast(`'${ws.name}' silindi.`);
+}
+
+function renderWorkspaceList(){
+  const listEl = document.getElementById('workspaceList');
+  if(!listEl) return;
+  listEl.innerHTML = workspaceState.workspaces.map(ws => {
+    const isActive = ws.id === workspaceState.activeId;
+    const itemCount = (ws.data && ws.data.items) ? ws.data.items.length : 0;
+    const dateStr = ws.updatedAt ? new Date(ws.updatedAt).toLocaleDateString('tr-TR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `
+      <div class="ws-card ${isActive ? 'active' : ''}" data-ws-id="${ws.id}">
+        <div class="ws-card-top">
+          <span class="ws-card-title" title="${esc(ws.name)}">${esc(ws.name)}</span>
+          ${isActive ? `<span class="ws-card-badge">Aktif</span>` : ''}
+        </div>
+        <div class="ws-card-sub">
+          <span>${itemCount} kayıt · ${dateStr}</span>
+          <div class="ws-card-actions">
+            <button type="button" class="ws-btn-action" data-ws-rename="${ws.id}" title="Adı Değiştir">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            ${workspaceState.workspaces.length > 1 ? `
+              <button type="button" class="ws-btn-action delete" data-ws-delete="${ws.id}" title="Sil">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('.ws-card').forEach(card => {
+    card.onclick = (e) => {
+      if(e.target.closest('.ws-btn-action')) return;
+      switchWorkspace(card.dataset.wsId);
+    };
+  });
+  listEl.querySelectorAll('[data-ws-rename]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      renameWorkspace(btn.dataset.wsRename);
+    };
+  });
+  listEl.querySelectorAll('[data-ws-delete]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      deleteWorkspace(btn.dataset.wsDelete);
+    };
+  });
+}
+
+function openDrawer(){
+  const drawer = document.getElementById('workspaceDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  if(drawer && overlay){
+    renderWorkspaceList();
+    updateWorkspaceHeaderInfo();
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+  }
+}
+function closeDrawer(){
+  const drawer = document.getElementById('workspaceDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  if(drawer && overlay){
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+}
+
+function initDrawer(){
+  const btnHam = document.getElementById('btnHamburger');
+  if(btnHam) btnHam.onclick = openDrawer;
+
+  const btnClose = document.getElementById('btnCloseDrawer');
+  if(btnClose) btnClose.onclick = closeDrawer;
+
+  const overlay = document.getElementById('drawerOverlay');
+  if(overlay) overlay.onclick = closeDrawer;
+
+  const btnNew = document.getElementById('btnNewWorkspace');
+  if(btnNew) btnNew.onclick = createWorkspace;
+
+  const btnDImp = document.getElementById('btnDrawerImport');
+  if(btnDImp) btnDImp.onclick = () => { closeDrawer(); openImportModal(); };
+
+  const btnDExp = document.getElementById('btnDrawerExport');
+  if(btnDExp) btnDExp.onclick = () => { closeDrawer(); openExportModal(); };
+
+  const btnSave = document.getElementById('btnSave');
+  if(btnSave) btnSave.onclick = () => persistAllWorkspaces(true);
+
+  window.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      const wsM = document.getElementById('wsModal');
+      if(wsM && wsM.classList.contains('open')){
+        closeWorkspaceModal();
+        return;
+      }
+      closeDrawer();
+    }
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){
+      e.preventDefault();
+      persistAllWorkspaces(true);
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if(isDirty){
+      saveCurrentToWorkspace();
+      try{
+        localStorage.setItem(WORKSPACES_KEY, JSON.stringify(workspaceState));
+      }catch(e){}
+    }
+  });
+}
+
+function initWorkspaceModal(){
+  const modal = document.getElementById('wsModal');
+  if(modal){
+    modal.onclick = (e) => {
+      if(e.target === modal) closeWorkspaceModal();
+    };
+  }
+  const btnClose = document.getElementById('wsModalClose');
+  if(btnClose) btnClose.onclick = closeWorkspaceModal;
+
+  const btnCancel = document.getElementById('wsModalCancel');
+  if(btnCancel) btnCancel.onclick = closeWorkspaceModal;
+
+  const form = document.getElementById('wsModalForm');
+  if(form){
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      handleWorkspaceModalSubmit();
+    };
+  }
+
+  const input = document.getElementById('wsModalInput');
+  if(input){
+    input.addEventListener('input', () => {
+      const error = document.getElementById('wsModalError');
+      if(error) error.style.display = 'none';
+      input.classList.remove('is-invalid');
+      const charCount = document.getElementById('wsModalCharCount');
+      if(charCount) charCount.textContent = `${input.value.length}/60`;
+    });
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape'){
+        e.stopPropagation();
+        closeWorkspaceModal();
+      }
+    });
+  }
+}
+function normalize(o){
+  const it = {};
+  FIELDS.forEach(f=> it[f] = o[f]==null ? '' : String(o[f]));
+  if(!TYPES[it.type]) it.type = 'SYS';
+  it.links = (it.links||'').split(/[,;|]/).map(s=>s.trim()).filter(Boolean).join(',');
+  return it;
+}
+
+/* ---------- yardımcılar ---------- */
+const byId = id => state.items.find(i=>i.id===id);
+const childrenOf = id => state.items.filter(i=>i.parent===id);
+const linksOf = it => (it.links||'').split(',').map(s=>s.trim()).filter(Boolean);
+
+function backlinks(id){ return state.items.filter(i=>linksOf(i).includes(id)); }
+
+function nextId(type, parentId){
+  const t = TYPES[type];
+  if(t.dotted && parentId){
+    const base = parentId;
+    let n = 1;
+    const kids = state.items.filter(i=>i.id.startsWith(base+'.'));
+    kids.forEach(k=>{
+      const tail = k.id.slice(base.length+1);
+      if(/^\d+$/.test(tail)) n = Math.max(n, parseInt(tail,10)+1);
+    });
+    return base+'.'+n;
+  }
+  const re = new RegExp('^'+t.prefix+'-(\\d+)$');
+  let n = 0;
+  state.items.forEach(i=>{ const m = re.exec(i.id); if(m) n = Math.max(n, parseInt(m[1],10)); });
+  const num = n+1;
+  return t.prefix+'-'+(t.dotted ? String(num).padStart(3,'0') : num);
+}
+
+function addItem(type, parentId){
+  const defaultStatus = type === 'TEST' ? 'Taslak' : 'Açık';
+  const it = normalize({
+    id:nextId(type,parentId),
+    type,
+    parent:parentId||'',
+    title:'',
+    status:defaultStatus,
+    priority:'Orta',
+    testType:type === 'TEST' ? 'Sistem Testi' : ''
+  });
+  const pIdx = parentId ? state.items.findIndex(i=>i.id===parentId) : -1;
+  if(pIdx>=0){
+    let ins = pIdx+1;
+    while(ins<state.items.length && isDescendant(state.items[ins].id, parentId)) ins++;
+    state.items.splice(ins,0,it);
+  } else state.items.push(it);
+  state.sel = it.id; save(); render();
+  setTimeout(()=>{ const el=document.getElementById('f_title'); if(el){el.focus();} },30);
+}
+function isDescendant(id, ancestor){
+  let cur = byId(id), guard=0;
+  while(cur && cur.parent && guard++<50){ if(cur.parent===ancestor) return true; cur = byId(cur.parent); }
+  return false;
+}
+function removeItem(id){
+  const kids = childrenOf(id);
+  if(kids.length && !confirm(`${id} ve ${kids.length} alt maddesi silinecek. Devam edilsin mi?`)) return;
+  const kill = new Set([id]);
+  let grew = true;
+  while(grew){ grew=false; state.items.forEach(i=>{ if(i.parent && kill.has(i.parent) && !kill.has(i.id)){kill.add(i.id);grew=true;} }); }
+  state.items = state.items.filter(i=>!kill.has(i.id));
+  if(kill.has(state.sel)) state.sel = null;
+  save(); render();
+}
+function renameId(oldId, newId){
+  newId = (newId || '').trim();
+  if(!newId){
+    toast('ID boş bırakılamaz!');
+    return false;
+  }
+  if(newId === oldId) return true;
+
+  // Harf büyüklüğü dahil tam yerel sistem çakışma kontrolü
+  const existing = state.items.find(i => i.id.toLowerCase() === newId.toLowerCase() && i.id !== oldId);
+  if(existing){
+    toast(`'${newId}' ID'si zaten mevcut (${existing.id})! Lütfen benzersiz bir ID girin.`);
+    return false;
+  }
+
+  // 1. Kendi ID'sini güncelle
+  const item = byId(oldId);
+  if(item) item.id = newId;
+
+  // 2. Bu maddeyi üst madde (parent) olarak referans veren alt maddeleri güncelle
+  state.items.forEach(i => {
+    if(i.parent === oldId) i.parent = newId;
+  });
+
+  // 3. Bu maddeye bağlanan diğer tüm maddelerin links listelerini güncelle
+  state.items.forEach(i => {
+    const l = linksOf(i);
+    if(l.includes(oldId)){
+      i.links = l.map(x => x === oldId ? newId : x).join(',');
+    }
+  });
+
+  // 4. Seçim ve collapse durumlarını güncelle
+  if(state.sel === oldId) state.sel = newId;
+  if(state.collapsed[oldId] !== undefined){
+    state.collapsed[newId] = state.collapsed[oldId];
+    delete state.collapsed[oldId];
+  }
+
+  save();
+  toast(`ID başarıyla güncellendi: ${oldId} → ${newId}`);
+  return true;
+}
+
+/* =========================================================================
+   Görünümler
+   ========================================================================= */
+const VIEWS = [
+  {k:'sys',    label:'Sistem Gereksinimleri', types:['SYS']},
+  {k:'sw',     label:'Yazılım Gereksinimleri', types:['SW']},
+  {k:'agile',  label:'İş Kalemleri',           types:['EPIC','STORY','TASK']},
+  {k:'test',   label:'Testler',                types:['TEST']},
+  {k:'gaps',   label:'Kapsanmayanlar'}
+];
+
+function render(){
+  renderNav(); renderTop(); renderMain(); renderInspector();
+}
+
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = VIEWS.map(v=>{
+    let n = '';
+    if(v.types) n = state.items.filter(i=>v.types.includes(i.type)).length;
+    if(v.k==='gaps')   n = getUnconnectedItems().length;
+    return `<button data-v="${v.k}" aria-current="${state.view===v.k}">
+      <span>${v.label}</span><span class="n">${n}</span></button>`;
+  }).join('');
+  nav.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    state.view = b.dataset.v;
+    if(state.view !== 'gaps'){
+      const vTypes = state.view === 'sys' ? ['SYS'] : (state.view === 'sw' ? ['SW'] : (state.view === 'agile' ? ['EPIC','STORY','TASK'] : (state.view === 'test' ? ['TEST'] : null)));
+      const cur = byId(state.sel);
+      if(vTypes && (!cur || !vTypes.includes(cur.type))){
+        const first = state.items.find(i => vTypes.includes(i.type));
+        state.sel = first ? first.id : null;
+      }
+    }
+    render();
+  });
+}
+
+function handleAddClick(type){
+  const selItem = byId(state.sel);
+  let parentId = '';
+
+  if(type === 'EPIC'){
+    parentId = '';
+  } else if(type === 'STORY'){
+    // Epic seçiliyse o Epic'in altına; Story seçiliyse aynı seviyede (aynı Epic altına)
+    if(selItem){
+      if(selItem.type === 'EPIC'){
+        parentId = selItem.id;
+      } else if(selItem.type === 'STORY'){
+        parentId = selItem.parent || '';
+      } else if(selItem.type === 'TASK'){
+        const taskParent = byId(selItem.parent);
+        if(taskParent && taskParent.type === 'STORY'){
+          parentId = taskParent.parent || '';
+        } else {
+          parentId = selItem.parent || '';
+        }
+      }
+    }
+  } else if(type === 'TASK'){
+    // Story seçiliyse o Story altına; Task seçiliyse aynı seviyede (aynı Story altına)
+    if(selItem){
+      if(selItem.type === 'STORY'){
+        parentId = selItem.id;
+      } else if(selItem.type === 'TASK'){
+        parentId = selItem.parent || '';
+      } else if(selItem.type === 'EPIC'){
+        parentId = selItem.id;
+      }
+    }
+  } else if(type === 'SYS' || type === 'SW'){
+    if(selItem && selItem.type === type){
+      parentId = selItem.parent || '';
+    }
+  }
+
+  // Üst madde kapalıysa açarak yeni maddenin hemen görünmesini sağla
+  if(parentId && state.collapsed[parentId]){
+    state.collapsed[parentId] = false;
+  }
+
+  addItem(type, parentId);
+}
+
+function renderTop(){
+  const v = VIEWS.find(x=>x.k===state.view) || VIEWS[0];
+  document.getElementById('viewTitle').textContent = v.label;
+  const box = document.getElementById('addBtns');
+  let html = '';
+  if(state.view==='sys'){
+    html = `<button class="btn btn-add-sys" data-add="SYS">+ Sistem gereksinimi ekle</button>`;
+  } else if(state.view==='sw'){
+    html = `<button class="btn btn-add-sw" data-add="SW">+ Yazılım gereksinimi ekle</button>`;
+  } else if(state.view==='agile'){
+    html = `<button class="btn btn-add-epic" data-add="EPIC">+ Epic ekle</button>
+            <button class="btn btn-add-story" data-add="STORY">+ Story ekle</button>
+            <button class="btn btn-add-task" data-add="TASK">+ Task ekle</button>`;
+  } else if(state.view==='test'){
+    html = `<button class="btn btn-add-test" data-add="TEST">+ Test senaryosu ekle</button>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>handleAddClick(b.dataset.add));
+}
+
+/* ---------- Sütun Combobox Filtre Popover Mantığı ---------- */
+function getColFilterTitle(key){
+  const titles = {
+    status: 'Durum Filtresi',
+    priority: 'Öncelik Filtresi',
+    testType: 'Test Türü Filtresi',
+    points: 'Puan Filtresi',
+    trace: 'İzlenebilirlik Filtresi',
+    tags: 'Etiket Filtresi'
+  };
+  return titles[key] || 'Filtrele';
+}
+
+function openColFilterPopover(btnEl, colKey){
+  const popover = document.getElementById('colFilterPopover');
+  if(!popover) return;
+
+  if(popover.classList.contains('open') && popover.dataset.currentCol === colKey){
+    popover.classList.remove('open');
+    return;
+  }
+  popover.dataset.currentCol = colKey;
+
+  const isTest = state.view === 'test';
+  const agile = state.view === 'agile';
+  const curTypes = state.view === 'sys' ? ['SYS'] : (state.view === 'sw' ? ['SW'] : (state.view === 'agile' ? ['EPIC','STORY','TASK'] : (state.view === 'test' ? ['TEST'] : [])));
+  const curItems = state.items.filter(i => curTypes.includes(i.type));
+
+  let options = [];
+
+  if(colKey === 'status'){
+    const list = isTest ? TEST_STATUS : STATUS;
+    options = list.map(s => {
+      const icon = (isTest && TEST_STATUS_ICONS[s]) ? TEST_STATUS_ICONS[s] : '';
+      const defaultSt = isTest ? 'Taslak' : 'Açık';
+      const count = curItems.filter(i => (i.status || defaultSt) === s).length;
+      return { val: s, label: s, icon, count };
+    });
+  } else if(colKey === 'priority'){
+    options = PRIO.map(p => {
+      const count = curItems.filter(i => (i.priority || 'Orta') === p).length;
+      return { val: p, label: p, count };
+    });
+  } else if(colKey === 'testType'){
+    options = TEST_TYPES.map(t => {
+      const count = curItems.filter(i => (i.testType || 'Sistem Testi') === t).length;
+      return { val: t, label: t, count };
+    });
+  } else if(colKey === 'points'){
+    const pts = Array.from(new Set(curItems.map(i => i.points).filter(Boolean))).sort((a,b)=>Number(a)-Number(b));
+    options = pts.map(p => {
+      const count = curItems.filter(i => String(i.points) === String(p)).length;
+      return { val: String(p), label: p + ' SP', count };
+    });
+  } else if(colKey === 'trace'){
+    const linkedCount = curItems.filter(i => (i.type === 'SYS' ? backlinks(i.id).length > 0 : linksOf(i).length > 0)).length;
+    const unlinkedCount = curItems.length - linkedCount;
+    options = [
+      { val: 'linked', label: 'Bağlantılı (Karşılanan)', count: linkedCount },
+      { val: 'unlinked', label: 'Bağlantısız (Eksik)', count: unlinkedCount }
+    ];
+  } else if(colKey === 'tags'){
+    const allTags = Array.from(new Set(
+      curItems.flatMap(i => (i.tags||'').split(',').map(t=>t.trim()).filter(Boolean))
+    )).sort();
+    options = allTags.map(t => {
+      const count = curItems.filter(i => (i.tags||'').toLowerCase().includes(t.toLowerCase())).length;
+      return { val: t, label: t, count };
+    });
+  }
+
+  const selectedVals = new Set(state.colFilters[colKey] || []);
+  const allSelected = selectedVals.size === 0 || selectedVals.size === options.length;
+
+  popover.innerHTML = `
+    <div class="cfp-head">
+      <span>${getColFilterTitle(colKey)}</span>
+      <div class="cfp-actions">
+        <button type="button" class="cfp-link" id="cfpSelectAll">Tümü</button>
+        <button type="button" class="cfp-link" id="cfpClear">Temizle</button>
+      </div>
+    </div>
+    ${options.length > 4 ? `<input type="text" class="cfp-search" id="cfpSearch" placeholder="Ara..." autocomplete="off">` : ''}
+    <div class="cfp-list" id="cfpList">
+      ${options.map(opt => `
+        <label class="cfp-item" data-val="${esc(opt.val)}">
+          <input type="checkbox" value="${esc(opt.val)}" ${(!selectedVals.size || selectedVals.has(opt.val)) ? 'checked' : ''}>
+          <span>${opt.icon ? `<strong style="margin-right:2px">${opt.icon}</strong> ` : ''}${esc(opt.label)}</span>
+          <span class="count">${opt.count}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+
+  // Arama filtresi
+  const searchInput = popover.querySelector('#cfpSearch');
+  if(searchInput){
+    searchInput.oninput = () => {
+      const q = searchInput.value.toLowerCase();
+      popover.querySelectorAll('.cfp-item').forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    };
+    setTimeout(()=>searchInput.focus(), 30);
+  }
+
+  // Checkbox tıklama işlemi
+  const updateFilters = () => {
+    const checkedBoxes = Array.from(popover.querySelectorAll('.cfp-item input[type=checkbox]:checked')).map(c => c.value);
+    if(checkedBoxes.length === options.length || checkedBoxes.length === 0){
+      state.colFilters[colKey] = [];
+    } else {
+      state.colFilters[colKey] = checkedBoxes;
+    }
+    save();
+    renderMain();
+  };
+
+  popover.querySelectorAll('.cfp-item input[type=checkbox]').forEach(cb => {
+    cb.onchange = updateFilters;
+  });
+
+  // Tümü / Temizle
+  popover.querySelector('#cfpSelectAll').onclick = () => {
+    state.colFilters[colKey] = [];
+    popover.querySelectorAll('.cfp-item input[type=checkbox]').forEach(c => c.checked = true);
+    save();
+    renderMain();
+  };
+  popover.querySelector('#cfpClear').onclick = () => {
+    state.colFilters[colKey] = [];
+    popover.querySelectorAll('.cfp-item input[type=checkbox]').forEach(c => c.checked = false);
+    save();
+    renderMain();
+  };
+
+  // Konumlandırma
+  const rect = btnEl.getBoundingClientRect();
+  popover.style.top = (rect.bottom + 6) + 'px';
+  let left = rect.left - 130;
+  if(left < 10) left = 10;
+  if(left + 230 > window.innerWidth) left = window.innerWidth - 240;
+  popover.style.left = left + 'px';
+  popover.classList.add('open');
+}
+
+// Popover dışına tıklandığında kapatma
+document.addEventListener('click', (e) => {
+  const popover = document.getElementById('colFilterPopover');
+  if(popover && popover.classList.contains('open')){
+    if(!popover.contains(e.target) && !e.target.closest('.th-filter-btn')){
+      popover.classList.remove('open');
+    }
+  }
+  const linkPop = document.getElementById('rowLinkPickerPopover');
+  if(linkPop && linkPop.classList.contains('open')){
+    if(!linkPop.contains(e.target) && !e.target.closest('.row-link-btn')){
+      linkPop.classList.remove('open');
+    }
+  }
+});
+
+/* ---------- Tablo Satır İçi Hızlı Gereksinim Bağlama Popover Mantığı ---------- */
+function openRowLinkPopover(btnEl, itemId){
+  const popover = document.getElementById('rowLinkPickerPopover');
+  if(!popover) return;
+
+  if(popover.classList.contains('open') && popover.dataset.currentItem === itemId){
+    popover.classList.remove('open');
+    return;
+  }
+  popover.dataset.currentItem = itemId;
+
+  const it = byId(itemId);
+  if(!it) return;
+
+  let activeFilter = 'ALL';
+  let searchTerm = '';
+
+  // Popover iskeleti tek sefer oluşturulur (DOM silinmez, event listener'lar kopmaz)
+  popover.innerHTML = `
+    <div class="rlp-head">
+      <h4>
+        <span class="chip ${it.type}">${TYPES[it.type].prefix}</span>
+        <span style="font-family:var(--mono)">${esc(it.id)}</span>
+        <span id="rlpCount" style="font-size:11px;color:var(--muted);font-weight:normal">(${linksOf(it).length} bağ)</span>
+      </h4>
+      <button type="button" class="btn ghost" style="padding:1px 5px;font-size:11px" id="closeRlpBtn">✕</button>
+    </div>
+
+    <input type="text" class="cfp-search" id="rowLinkSearch" placeholder="Gereksinim ID veya başlık ara..." autocomplete="off">
+
+    <div class="rlp-filters">
+      <button type="button" class="rlp-filter-btn active" data-rf="ALL">Tümü</button>
+      <button type="button" class="rlp-filter-btn" data-rf="SYS">SG</button>
+      <button type="button" class="rlp-filter-btn" data-rf="SW">YG</button>
+      <button type="button" class="rlp-filter-btn" data-rf="EPIC">EP</button>
+      <button type="button" class="rlp-filter-btn" data-rf="STORY">ST</button>
+      <button type="button" class="rlp-filter-btn" data-rf="TASK">GOR</button>
+      <button type="button" class="rlp-filter-btn" data-rf="TEST">TC</button>
+    </div>
+
+    <div class="rlp-list" id="rowLinkList"></div>
+  `;
+
+  popover.querySelector('#closeRlpBtn').onclick = (e) => {
+    e.stopPropagation();
+    popover.classList.remove('open');
+  };
+
+  const countEl = popover.querySelector('#rlpCount');
+  const listEl = popover.querySelector('#rowLinkList');
+  const searchEl = popover.querySelector('#rowLinkSearch');
+  const filterBtns = popover.querySelectorAll('.rlp-filter-btn');
+
+  const renderItemsOnly = () => {
+    const curLinks = linksOf(it);
+    if(countEl) countEl.textContent = `(${curLinks.length} bağ)`;
+
+    // Aktif filtre butonunu güncelle
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.rf === activeFilter);
+    });
+
+    const candidates = state.items.filter(x => x.id !== it.id && !isDescendant(x.id, it.id));
+    const filtered = candidates.filter(x => {
+      if(activeFilter !== 'ALL' && x.type !== activeFilter) return false;
+      if(searchTerm){
+        const q = searchTerm.toLowerCase();
+        const str = `${x.id} ${x.title} ${x.desc||''} ${x.owner||''} ${x.tags||''}`.toLowerCase();
+        if(!str.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if(!filtered.length){
+      listEl.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:11.5px">Eşleşen kayıt bulunamadı</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(x => {
+      const isSel = curLinks.includes(x.id);
+      const stCls = (x.status||'acik').toLowerCase()
+        .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+        .replace(/[^a-z]/g,'');
+      return `
+        <label class="rlp-item ${isSel?'selected':''}">
+          <input type="checkbox" value="${esc(x.id)}" ${isSel?'checked':''}>
+          <div class="rlp-item-info">
+            <div class="rlp-item-top">
+              <span class="chip ${x.type}">${TYPES[x.type].prefix}</span>
+              <span style="font-family:var(--mono);font-weight:600;font-size:11.5px">${esc(x.id)}</span>
+              <span style="margin-left:auto;font-size:10.5px;color:var(--muted);display:inline-flex;align-items:center;gap:3px">
+                <span class="dot ${stCls}"></span> ${esc(x.status||'')}
+              </span>
+            </div>
+            <div class="rlp-item-title" title="${esc(x.title)}">${esc(x.title) || '<span class="muted">(başlıksız)</span>'}</div>
+          </div>
+        </label>
+      `;
+    }).join('');
+
+    // Checkbox olaylarını bağla
+    listEl.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.onchange = (e) => {
+        e.stopPropagation();
+        const targetId = cb.value;
+        const links = linksOf(it);
+        if(cb.checked){
+          if(!links.includes(targetId)) links.push(targetId);
+        } else {
+          const idx = links.indexOf(targetId);
+          if(idx >= 0) links.splice(idx, 1);
+        }
+        it.links = links.join(',');
+        save();
+
+        // Satırı ve inspector'ı anında güncelle
+        refreshRowTrace(it);
+        if(state.sel === it.id){
+          renderInspector();
+        }
+        renderItemsOnly();
+      };
+    });
+  };
+
+  // Filtre butonları
+  filterBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      activeFilter = btn.dataset.rf;
+      renderItemsOnly();
+    };
+  });
+
+  // Arama girişi
+  searchEl.oninput = (e) => {
+    searchTerm = searchEl.value;
+    renderItemsOnly();
+  };
+
+  renderItemsOnly();
+
+  // Konumlandırma
+  const rect = btnEl.getBoundingClientRect();
+  popover.style.top = (rect.bottom + 6) + 'px';
+  let left = rect.left - 180;
+  if(left < 10) left = 10;
+  if(left + 330 > window.innerWidth) left = window.innerWidth - 340;
+  popover.style.left = left + 'px';
+  popover.classList.add('open');
+
+  setTimeout(()=>{
+    if(searchEl) searchEl.focus();
+  }, 30);
+}
+
+function matches(it){
+  // 1. Metin araması
+  if(state.q){
+    const s = state.q.toLowerCase();
+    const str = `${it.id} ${it.title} ${it.desc} ${it.tags} ${it.owner} ${it.links} ${it.testType||''}`.toLowerCase();
+    if(!str.includes(s)) return false;
+  }
+
+  const cf = state.colFilters || {};
+
+  // 2. Durum (Multi-select)
+  if(cf.status && cf.status.length > 0){
+    const defaultSt = it.type === 'TEST' ? 'Taslak' : 'Açık';
+    const itSt = it.status || defaultSt;
+    if(!cf.status.includes(itSt)) return false;
+  }
+
+  // 3. Öncelik (Multi-select)
+  if(cf.priority && cf.priority.length > 0){
+    const itPrio = it.priority || 'Orta';
+    if(!cf.priority.includes(itPrio)) return false;
+  }
+
+  // 4. Test Türü (Multi-select)
+  if(cf.testType && cf.testType.length > 0){
+    const itTt = it.testType || 'Sistem Testi';
+    if(!cf.testType.includes(itTt)) return false;
+  }
+
+  // 5. Puan (Multi-select)
+  if(cf.points && cf.points.length > 0){
+    const itPts = String(it.points || '');
+    if(!cf.points.includes(itPts)) return false;
+  }
+
+  // 6. İzlenebilirlik / Bağlantı (Multi-select: 'linked', 'unlinked')
+  if(cf.trace && cf.trace.length > 0){
+    const hasLink = (it.type === 'SYS') ? backlinks(it.id).length > 0 : linksOf(it).length > 0;
+    const linkType = hasLink ? 'linked' : 'unlinked';
+    if(!cf.trace.includes(linkType)) return false;
+  }
+
+  // 7. Etiketler (Multi-select)
+  if(cf.tags && cf.tags.length > 0){
+    const itemTags = (it.tags || '').split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+    const matchesAnyTag = cf.tags.some(t => itemTags.includes(t.toLowerCase()));
+    if(!matchesAnyTag) return false;
+  }
+
+  return true;
+}
+
+function visibleSet(){
+  const cf = state.colFilters || {};
+  const hasColFilter = Object.values(cf).some(arr => Array.isArray(arr) && arr.length > 0);
+  if(!state.q && !hasColFilter) return null;
+  const keep = new Set();
+  state.items.filter(matches).forEach(it=>{
+    keep.add(it.id);
+    let c = it, g=0;
+    while(c.parent && g++<50){ keep.add(c.parent); c = byId(c.parent)||{}; }
+  });
+  return keep;
+}
+
+function renderMain(){
+  const el = document.getElementById('view');
+  if(state.view==='gaps'){ el.innerHTML = gapsHTML(); wireRowLinks(el); wireGapFilters(el); return; }
+
+  const keep = visibleSet();
+  let html = '';
+
+  if(state.view==='sys'){
+    const roots = state.items.filter(i=>i.type==='SYS' && !i.parent && (!keep||keep.has(i.id)));
+    const total = state.items.filter(i=>i.type==='SYS').length;
+    html += `<div class="groupline"><h3>Sistem gereksinimleri</h3><span>${total} madde</span></div>`;
+    html += tableHTML(roots);
+  } else if(state.view==='sw'){
+    const roots = state.items.filter(i=>i.type==='SW' && !i.parent && (!keep||keep.has(i.id)));
+    const total = state.items.filter(i=>i.type==='SW').length;
+    html += `<div class="groupline"><h3>Yazılım gereksinimleri</h3><span>${total} madde</span></div>`;
+    html += tableHTML(roots);
+  } else if(state.view==='agile'){
+    const roots = state.items.filter(i=>i.type==='EPIC' && !i.parent && (!keep||keep.has(i.id)));
+    const orphanS = state.items.filter(i=>i.type==='STORY' && (!i.parent||!byId(i.parent)) && (!keep||keep.has(i.id)));
+    const orphanT = state.items.filter(i=>i.type==='TASK' && (!i.parent||!byId(i.parent)) && (!keep||keep.has(i.id)));
+    const total = state.items.filter(i=>['EPIC','STORY','TASK'].includes(i.type)).length;
+    html += `<div class="groupline"><h3>Epic → Story → Task</h3><span>${total} madde</span></div>`;
+    html += tableHTML(roots.concat(orphanS).concat(orphanT));
+  } else if(state.view==='test'){
+    const tests = state.items.filter(i=>i.type==='TEST' && (!keep||keep.has(i.id)));
+    const total = state.items.filter(i=>i.type==='TEST').length;
+    html += `<div class="groupline"><h3>Test Senaryoları ve Koşum Süreçleri</h3><span>${total} test</span></div>`;
+    html += tableHTML(tests);
+  }
+
+  if(!state.items.length) html = emptyHTML();
+  el.innerHTML = html;
+  wireRows(el);
+}
+
+function tableHTML(roots){
+  const agile = state.view==='agile';
+  const isTest = state.view==='test';
+  let rows = '';
+  const keep = visibleSet();
+  const walk = (list, depth)=>{
+    list.forEach(it=>{
+      rows += rowHTML(it, depth);
+      const kids = childrenOf(it.id).filter(k=>!keep||keep.has(k.id));
+      if(kids.length && !state.collapsed[it.id]) walk(kids, depth+1);
+    });
+  };
+  walk(roots, 0);
+  if(!rows) return `<div class="empty"><h3>Kayıt yok</h3><p>Yukarıdaki ekle düğmesiyle başlayın veya CSV içe aktarın.</p></div>`;
+
+  const col3Key = isTest ? 'testType' : (agile ? 'points' : 'priority');
+  const col3Label = isTest ? 'Test Türü' : (agile ? 'Puan' : 'Öncelik');
+  const col3Width = isTest ? '140px' : (agile ? '80px' : '100px');
+
+  const col3Count = (state.colFilters[col3Key]||[]).length;
+  const statusCount = (state.colFilters.status||[]).length;
+  const traceCount = (state.colFilters.trace||[]).length;
+  const tagsCount = (state.colFilters.tags||[]).length;
+
+  function thFilterBtn(key, count){
+    const active = count > 0;
+    return `<button type="button" class="th-filter-btn ${active?'active':''}" data-col-filter="${key}" title="${active ? count+' filtre seçili' : 'Filtrele'}">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+      ${active ? `<span style="font-size:10px;font-weight:700;margin-left:2px">${count}</span>` : ''}
+    </button>`;
+  }
+
+  return `<table class="tree">
+    <thead><tr>
+      <th style="width:170px"><div class="th-wrap"><span>ID</span></div></th>
+      <th><div class="th-wrap"><span>Başlık</span></div></th>
+      <th style="width:${col3Width}"><div class="th-wrap"><span>${col3Label}</span>${thFilterBtn(col3Key, col3Count)}</div></th>
+      <th style="width:135px"><div class="th-wrap"><span>${isTest ? 'Test Durumu' : 'Durum'}</span>${thFilterBtn('status', statusCount)}</div></th>
+      <th style="width:180px"><div class="th-wrap"><span>${isTest ? 'Test Edilen Gereksinim' : (agile?'İlgili gereksinim':'İzlenebilirlik')}</span>${thFilterBtn('trace', traceCount)}</div></th>
+      <th style="width:145px"><div class="th-wrap"><span>Etiketler</span>${thFilterBtn('tags', tagsCount)}</div></th>
+      <th style="width:96px"></th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function rowHTML(it, depth){
+  const agile = state.view==='agile';
+  const isTest = state.view==='test' || it.type==='TEST';
+  const kids = childrenOf(it.id);
+  const open = !state.collapsed[it.id];
+  const ind = Array.from({length:depth},()=>'<span class="indent" style="width:15px"></span>').join('');
+  const tw = kids.length
+    ? `<button class="twist" data-toggle="${it.id}" title="${open?'Kapat':'Aç'}">${open?'▾':'▸'}</button>`
+    : `<span class="twist hidden"></span>`;
+  const defaultSt = isTest ? 'Taslak' : 'Açık';
+  const st = (it.status||defaultSt).toLowerCase()
+      .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+      .replace(/[^a-z]/g,'');
+  const done = it.status==='Doğrulandı'||it.status==='Başarılı'||it.status==='İptal';
+  const ls = linksOf(it);
+  const trace = ls.length
+    ? ls.map(x=>`<span class="linkchip" data-go="${x}">${x}</span>`).join('')
+    : (it.type==='SW'||it.type==='STORY'||it.type==='TASK'||it.type==='TEST' ? '<span class="muted small">bağ yok</span>' : coverBadge(it));
+  const tagChips = it.tags
+    ? esc(it.tags).split(',').map(t=>`<span style="background:rgba(0,0,0,0.06);padding:1.5px 6px;border-radius:4px;font-size:11px;margin-right:4px;white-space:nowrap;display:inline-block">${esc(t.trim())}</span>`).join('')
+    : '<span class="muted">—</span>';
+  const col3 = isTest ? (it.testType||'Sistem Testi') : (agile? (it.points||'') : (it.priority||''));
+  const testIcon = (isTest && TEST_STATUS_ICONS[it.status||defaultSt]) ? `<span style="font-size:11px;font-weight:700;margin-right:3px;opacity:0.85">${TEST_STATUS_ICONS[it.status||defaultSt]}</span>` : '';
+  const linkBtn = (it.type==='SW' || it.type==='EPIC' || it.type==='STORY' || it.type==='TASK' || it.type==='TEST')
+    ? `<button type="button" class="row-link-btn" data-pick-link="${it.id}" title="Gereksinim bağla / düzenle">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+      </button>`
+    : '';
+  return `<tr data-id="${it.id}" class="row-${it.type} ${state.sel===it.id?'sel':''}">
+    <td><div class="cell idcell">${ind}${tw}<span class="chip ${it.type}">${TYPES[it.type].prefix}</span><a href="#" class="id-link" data-detail="${it.id}" title="Detaylı modalı aç">${it.id}</a></div></td>
+    <td><div class="cell wrap"><span class="title-txt ${done?'done':''}">${esc(it.title)||'<span class="muted">(başlıksız)</span>'}</span></div></td>
+    <td><div class="cell small muted">${esc(col3)}</div></td>
+    <td><div class="cell small"><span class="dot ${st}"></span>${testIcon}${esc(it.status||defaultSt)}</div></td>
+    <td><div class="cell small" style="display:flex;align-items:center;gap:4px"><div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:2px">${trace}</div>${linkBtn}</div></td>
+    <td><div class="cell small muted" style="flex-wrap:wrap;gap:2px">${tagChips}</div></td>
+    <td><div class="cell" style="justify-content:flex-end">
+      <button class="rowbtn" data-detail="${it.id}" title="Detaylı modalı aç">Detay</button>
+    </div></td>
+  </tr>`;
+}
+
+function coverBadge(it){
+  const bl = backlinks(it.id);
+  if(!bl.length) return `<span class="cover no">karşılanmadı</span>`;
+  return `<span class="cover ok">${bl.length} bağ</span>`;
+}
+
+function selectItem(id){
+  if(state.sel === id && id !== null) return;
+  const prevSel = state.sel;
+  state.sel = id;
+
+  if(prevSel){
+    const prevRow = document.querySelector(`tr[data-id="${cssEsc(prevSel)}"]`);
+    if(prevRow) prevRow.classList.remove('sel');
+  }
+  if(id){
+    const newRow = document.querySelector(`tr[data-id="${cssEsc(id)}"]`);
+    if(newRow) newRow.classList.add('sel');
+  }
+  save();
+  renderInspector();
+}
+
+function wireRows(el){
+  el.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const id=b.dataset.toggle; state.collapsed[id]=!state.collapsed[id]; save(); renderMain();
+  });
+  el.querySelectorAll('[data-child]').forEach(b=>b.onclick=e=>{
+    e.stopPropagation(); addItem(b.dataset.ctype, b.dataset.child);
+  });
+  el.querySelectorAll('[data-col-filter]').forEach(b=>{
+    b.onclick = e=>{
+      e.preventDefault(); e.stopPropagation();
+      openColFilterPopover(b, b.dataset.colFilter);
+    };
+  });
+  el.querySelectorAll('[data-pick-link]').forEach(b=>{
+    b.onclick = e=>{
+      e.preventDefault(); e.stopPropagation();
+      openRowLinkPopover(b, b.dataset.pickLink);
+    };
+  });
+  el.querySelectorAll('tr[data-id]').forEach(tr=>{
+    tr.onclick = (e)=>{
+      if(e.target.closest('button, a, input, select, textarea')) return;
+      const selObj = window.getSelection();
+      if(selObj && selObj.toString().trim().length > 0 && state.sel === tr.dataset.id){
+        return;
+      }
+      selectItem(tr.dataset.id);
+    };
+  });
+  wireRowLinks(el);
+}
+function wireRowLinks(el){
+  el.querySelectorAll('[data-detail]').forEach(a=>{
+    a.onclick = e=>{
+      e.preventDefault(); e.stopPropagation();
+      openDetailModal(a.dataset.detail);
+    };
+  });
+  el.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{
+    e.preventDefault(); e.stopPropagation();
+    const t = byId(a.dataset.go);
+    if(!t){ toast('Bu ID bulunamadı: '+a.dataset.go); return; }
+    const neededView = t.type==='SYS' ? 'sys' : (t.type==='SW' ? 'sw' : 'agile');
+    if(state.view !== neededView){
+      state.view = neededView;
+      state.sel = t.id;
+      render();
+    } else {
+      selectItem(t.id);
+      const tr = document.querySelector(`tr[data-id="${cssEsc(t.id)}"]`);
+      if(tr) tr.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  });
+}
+
+/* ---------- izlenebilirlik & bağlantı zincirleri ---------- */
+function getTraceChains(){
+  const chains = [];
+  const processedKeys = new Set();
+
+  // 1. Sistem gereksinimleri üzerinden kurulan bağlar
+  const sysItems = state.items.filter(i => i.type === 'SYS');
+  sysItems.forEach(sys => {
+    const swLinks = backlinks(sys.id).filter(b => b.type === 'SW');
+    const directAgileLinks = backlinks(sys.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+
+    if(swLinks.length){
+      swLinks.forEach(sw => {
+        const agileLinks = backlinks(sw.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+        if(agileLinks.length){
+          agileLinks.forEach(agile => {
+            const key = `${sys.id}->${sw.id}->${agile.id}`;
+            if(!processedKeys.has(key)){
+              processedKeys.add(key);
+              chains.push({
+                type: 'full',
+                sys: sys,
+                sw: sw,
+                agile: agile,
+                label: 'Tam Zincir (SG→YG→İş)',
+                badgeClass: 'ok'
+              });
+            }
+          });
+        } else {
+          const key = `${sys.id}->${sw.id}->null`;
+          if(!processedKeys.has(key)){
+            processedKeys.add(key);
+            chains.push({
+              type: 'sys_sw',
+              sys: sys,
+              sw: sw,
+              agile: null,
+              label: 'SG → YG Bağı',
+              badgeClass: 'sw'
+            });
+          }
+        }
+      });
+    }
+
+    if(directAgileLinks.length){
+      directAgileLinks.forEach(agile => {
+        const key = `${sys.id}->null->${agile.id}`;
+        if(!processedKeys.has(key)){
+          processedKeys.add(key);
+          chains.push({
+            type: 'sys_agile',
+            sys: sys,
+            sw: null,
+            agile: agile,
+            label: 'SG → İş Kalemi Doğrudan Bağ',
+            badgeClass: 'agile'
+          });
+        }
+      });
+    }
+  });
+
+  // 2. Bir sistem gereksinimine bağlı olmayan ama iş kalemi bağlanmış yazılım gereksinimleri
+  const swItems = state.items.filter(i => i.type === 'SW');
+  swItems.forEach(sw => {
+    const hasSysParent = linksOf(sw).some(l => byId(l)?.type === 'SYS');
+    if(!hasSysParent){
+      const agileLinks = backlinks(sw.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+      agileLinks.forEach(agile => {
+        const key = `null->${sw.id}->${agile.id}`;
+        if(!processedKeys.has(key)){
+          processedKeys.add(key);
+          chains.push({
+            type: 'sw_agile',
+            sys: null,
+            sw: sw,
+            agile: agile,
+            label: 'YG → İş Kalemi Bağı',
+            badgeClass: 'part'
+          });
+        }
+      });
+    }
+  });
+
+  return chains;
+}
+
+/* ---------- kapsanmayanlar & bağlanmayan maddeler ---------- */
+function getUnconnectedItems(){
+  const result = [];
+
+  state.items.forEach(it => {
+    // 1. YG bağlanmayan SG'ler
+    if(it.type === 'SYS'){
+      const swBl = backlinks(it.id).filter(b => b.type === 'SW');
+      if(swBl.length === 0){
+        result.push({
+          item: it,
+          cat: 'sg_no_sw',
+          catLabel: 'YG Bağı Yok',
+          reason: 'Bu sistem gereksinimini karşılayan henüz hiçbir Yazılım Gereksinimi (YG) bağlanmamış.',
+          badgeClass: 'no'
+        });
+      }
+
+      // 2. İş kalemi olmayan SG'ler
+      const directAgile = backlinks(it.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+      const hasSwAgile = swBl.some(sw => backlinks(sw.id).some(b => ['EPIC','STORY','TASK'].includes(b.type)));
+      if(directAgile.length === 0 && !hasSwAgile){
+        result.push({
+          item: it,
+          cat: 'sg_no_agile',
+          catLabel: 'İş Kalemi Yok',
+          reason: 'Bu sistem gereksinimi için doğrudan veya yazılım gereksinimi üzerinden açılmış bir Epic / Story / Task bulunmuyor.',
+          badgeClass: 'part'
+        });
+      }
+    }
+
+    // 3. SG olmayan YG'ler (SG'ye bağlanmamış YG'ler)
+    if(it.type === 'SW'){
+      const sysLinks = linksOf(it).filter(l => byId(l)?.type === 'SYS');
+      if(sysLinks.length === 0){
+        result.push({
+          item: it,
+          cat: 'sw_no_sg',
+          catLabel: 'SG Bağı Yok',
+          reason: 'Bu yazılım gereksinimi herhangi bir Sistem Gereksinimine (SG) dayandırılmamış.',
+          badgeClass: 'no'
+        });
+      }
+
+      // 4. İş kalemi olmayan YG'ler
+      const agileBl = backlinks(it.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+      if(agileBl.length === 0){
+        result.push({
+          item: it,
+          cat: 'sw_no_agile',
+          catLabel: 'İş Kalemi Yok',
+          reason: 'Bu yazılım gereksinimi için henüz bir Story veya Task açılmamış.',
+          badgeClass: 'part'
+        });
+      }
+
+      // 6. Test olmayan YG'ler
+      const testBl = backlinks(it.id).filter(b => b.type === 'TEST');
+      if(testBl.length === 0){
+        result.push({
+          item: it,
+          cat: 'sw_no_test',
+          catLabel: 'Testi Yok',
+          reason: 'Bu yazılım gereksinimi için henüz doğrulanacak bir test senaryosu (TC) tanımlanmamış.',
+          badgeClass: 'no'
+        });
+      }
+    }
+
+    // 5. Test olmayan iş kalemleri
+    if(['EPIC','STORY','TASK'].includes(it.type)){
+      const testBl = backlinks(it.id).filter(b => b.type === 'TEST');
+      if(testBl.length === 0){
+        result.push({
+          item: it,
+          cat: 'agile_no_test',
+          catLabel: 'Testi Yok',
+          reason: 'Bu iş kalemi için henüz bir test senaryosu (TC) bağlanmamış.',
+          badgeClass: 'part'
+        });
+      }
+    }
+  });
+
+  return result;
+}
+
+let currentGapFilter = 'ALL';
+
+function matrixHTML(){
+  const allChains = getTraceChains();
+  const chains = allChains.filter(c => {
+    if(!state.q) return true;
+    const str = `${c.sys?.id||''} ${c.sys?.title||''} ${c.sw?.id||''} ${c.sw?.title||''} ${c.agile?.id||''} ${c.agile?.title||''}`.toLowerCase();
+    return str.includes(state.q.toLowerCase());
+  });
+
+  const fullCount = allChains.filter(c=>c.type==='full').length;
+  const sysSwCount = allChains.filter(c=>c.type==='sys_sw').length;
+  const swAgileCount = allChains.filter(c=>c.type==='sw_agile'||c.type==='full').length;
+
+  const kpiHtml = `
+    <div class="trace-kpi-bar">
+      <div class="trace-kpi-card">
+        <span class="trace-kpi-num">${allChains.length}</span>
+        <span class="trace-kpi-lbl">Toplam Bağlantılı Zincir</span>
+      </div>
+      <div class="trace-kpi-card">
+        <span class="trace-kpi-num">${fullCount}</span>
+        <span class="trace-kpi-lbl">Uçtan Uca Tam Zincir (SG→YG→İş)</span>
+      </div>
+      <div class="trace-kpi-card">
+        <span class="trace-kpi-num">${sysSwCount}</span>
+        <span class="trace-kpi-lbl">SG → YG Doğrudan Bağ</span>
+      </div>
+      <div class="trace-kpi-card">
+        <span class="trace-kpi-num">${swAgileCount}</span>
+        <span class="trace-kpi-lbl">YG → İş Kalemi Bağı</span>
+      </div>
+    </div>
+  `;
+
+  if(!chains.length){
+    return `<div class="matrix">${kpiHtml}
+      <div class="empty">
+        <h3>Bağlantılı kayıt bulunamadı</h3>
+        <p>Maddelerin sağ panelindeki “Bağlantılar” alanından veya CSV ile sistem, yazılım ve iş kalemleri arasında bağ kurabilirsiniz.</p>
+      </div>
+    </div>`;
+  }
+
+  const rows = chains.map(c => {
+    return `<tr>
+      <td>
+        ${c.sys ? `
+          <div class="trace-item-box">
+            <div class="trace-item-head">
+              <span class="chip ${c.sys.type}">${TYPES[c.sys.type].prefix}</span>
+              <a href="#" class="id-link" data-detail="${esc(c.sys.id)}">${esc(c.sys.id)}</a>
+            </div>
+            <div class="trace-item-title" title="${esc(c.sys.title)}">${esc(c.sys.title)}</div>
+          </div>
+        ` : `<span class="muted small">— Sistem Bağı Yok —</span>`}
+      </td>
+      <td style="width:36px;text-align:center"><span class="trace-arrow">→</span></td>
+      <td>
+        ${c.sw ? `
+          <div class="trace-item-box">
+            <div class="trace-item-head">
+              <span class="chip ${c.sw.type}">${TYPES[c.sw.type].prefix}</span>
+              <a href="#" class="id-link" data-detail="${esc(c.sw.id)}">${esc(c.sw.id)}</a>
+              <span class="small muted" style="margin-left:auto">${esc(c.sw.status||'')}</span>
+            </div>
+            <div class="trace-item-title" title="${esc(c.sw.title)}">${esc(c.sw.title)}</div>
+          </div>
+        ` : `<span class="muted small">— Yazılım Bağı Yok —</span>`}
+      </td>
+      <td style="width:36px;text-align:center"><span class="trace-arrow">→</span></td>
+      <td>
+        ${c.agile ? `
+          <div class="trace-item-box">
+            <div class="trace-item-head">
+              <span class="chip ${c.agile.type}">${TYPES[c.agile.type].prefix}</span>
+              <a href="#" class="id-link" data-detail="${esc(c.agile.id)}">${esc(c.agile.id)}</a>
+              ${c.agile.points ? `<span class="small" style="color:var(--story);font-weight:600">${esc(c.agile.points)} SP</span>` : ''}
+              <span class="small muted" style="margin-left:auto">${esc(c.agile.status||'')}</span>
+            </div>
+            <div class="trace-item-title" title="${esc(c.agile.title)}">${esc(c.agile.title)}</div>
+          </div>
+        ` : `<span class="muted small">— İş Kalemi Yok —</span>`}
+      </td>
+      <td style="width:170px">
+        <span class="cover ${c.badgeClass}">${c.label}</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="matrix">
+    ${kpiHtml}
+    <div class="groupline">
+      <h3>İzlenebilirlik Matrisi (Sistem → Yazılım → İş Kalemi)</h3>
+      <span>${chains.length} aktif bağlantı yolu</span>
+    </div>
+    <table class="mx">
+      <thead>
+        <tr>
+          <th>Sistem Gereksinimi (SG)</th>
+          <th style="width:36px"></th>
+          <th>Yazılım Gereksinimi (YG)</th>
+          <th style="width:36px"></th>
+          <th>İş Kalemi (Epic / Story / Task)</th>
+          <th style="width:170px">Bağlantı Türü</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function gapsHTML(){
+  const allUnconnected = getUnconnectedItems();
+  const sgNoSwCount = allUnconnected.filter(g=>g.cat==='sg_no_sw').length;
+  const sgNoAgileCount = allUnconnected.filter(g=>g.cat==='sg_no_agile').length;
+  const swNoSgCount = allUnconnected.filter(g=>g.cat==='sw_no_sg').length;
+  const swNoAgileCount = allUnconnected.filter(g=>g.cat==='sw_no_agile').length;
+  const agileNoTestCount = allUnconnected.filter(g=>g.cat==='agile_no_test').length;
+  const swNoTestCount = allUnconnected.filter(g=>g.cat==='sw_no_test').length;
+
+  const filtered = allUnconnected.filter(g => {
+    if(currentGapFilter !== 'ALL' && g.cat !== currentGapFilter) return false;
+    if(state.q){
+      const q = state.q.toLowerCase();
+      const str = `${g.item.id} ${g.item.title} ${g.reason}`.toLowerCase();
+      if(!str.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const filterBarHtml = `
+    <div class="gap-filter-bar" style="display:flex;flex-wrap:wrap;gap:6px">
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='ALL'?'active':''}" data-gfilter="ALL">
+        Tümü <span class="gb-count">${allUnconnected.length}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='sg_no_sw'?'active':''}" data-gfilter="sg_no_sw">
+        YG Bağlanmayan SG'ler <span class="gb-count">${sgNoSwCount}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='sg_no_agile'?'active':''}" data-gfilter="sg_no_agile">
+        İş Kalemi Olmayan SG'ler <span class="gb-count">${sgNoAgileCount}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='sw_no_sg'?'active':''}" data-gfilter="sw_no_sg">
+        SG Olmayan YG'ler <span class="gb-count">${swNoSgCount}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='sw_no_agile'?'active':''}" data-gfilter="sw_no_agile">
+        İş Kalemi Olmayan YG'ler <span class="gb-count">${swNoAgileCount}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='agile_no_test'?'active':''}" data-gfilter="agile_no_test">
+        Test Olmayan İş Kalemleri <span class="gb-count">${agileNoTestCount}</span>
+      </button>
+      <button type="button" class="gap-filter-btn ${currentGapFilter==='sw_no_test'?'active':''}" data-gfilter="sw_no_test">
+        Test Olmayan YG'ler <span class="gb-count">${swNoTestCount}</span>
+      </button>
+    </div>
+  `;
+
+  if(!filtered.length){
+    return `<div class="matrix">
+      ${filterBarHtml}
+      <div class="empty">
+        <h3>${allUnconnected.length ? 'Bu filtreye uygun eksik kayıt yok' : 'Tebrikler! Bağlantısız madde yok'}</h3>
+        <p>${allUnconnected.length ? 'Yukarıdaki diğer kategorileri seçerek inceleyebilirsiniz.' : 'Tüm sistem ve yazılım gereksinimleri ile iş kalemleri birbirine başarıyla bağlanmış.'}</p>
+      </div>
+    </div>`;
+  }
+
+  const rows = filtered.map(g => {
+    const it = g.item;
+    return `<tr>
+      <td class="idc" style="width:160px">
+        <span class="chip ${it.type}">${TYPES[it.type].prefix}</span>
+        <a href="#" class="id-link" data-detail="${esc(it.id)}">${esc(it.id)}</a>
+      </td>
+      <td>
+        <div style="font-weight:500;color:var(--ink);line-height:1.4">${esc(it.title)}</div>
+        <div class="small muted" style="margin-top:3px">${esc(it.owner ? 'Sorumlu: '+it.owner : '')} ${it.priority ? '· Öncelik: '+it.priority : ''}</div>
+      </td>
+      <td style="width:280px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span class="cover ${g.badgeClass}">${g.catLabel}</span>
+        </div>
+        <div class="small" style="color:#57606a;line-height:1.35">${esc(g.reason)}</div>
+      </td>
+      <td style="width:100px;text-align:right">
+        <button class="btn primary" style="font-size:11.5px;padding:4px 10px;font-weight:500" data-connect="${esc(it.id)}">Bağla</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="matrix">
+    ${filterBarHtml}
+    <div class="groupline">
+      <h3>Bağlantısı Olmayan / Kapsanmayan Maddeler</h3>
+      <span>${filtered.length} eksik durum listeleniyor</span>
+    </div>
+    <table class="mx">
+      <thead>
+        <tr>
+          <th style="width:160px">Madde ID</th>
+          <th>Başlık</th>
+          <th style="width:280px">Eksiklik Türü & Açıklaması</th>
+          <th style="width:100px"></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function wireGapFilters(el){
+  el.querySelectorAll('[data-gfilter]').forEach(btn => {
+    btn.onclick = () => {
+      currentGapFilter = btn.dataset.gfilter;
+      renderMain();
+    };
+  });
+  el.querySelectorAll('[data-connect]').forEach(btn => {
+    btn.onclick = () => {
+      const it = byId(btn.dataset.connect);
+      if(it){
+        const neededView = it.type==='SYS' ? 'sys' : (it.type==='SW' ? 'sw' : (it.type==='TEST' ? 'test' : 'agile'));
+        state.view = neededView;
+        state.sel = it.id;
+        render();
+        const drop = document.getElementById('linkDropdown');
+        const trig = document.getElementById('linkTrigger');
+        if(drop && trig){
+          trig.click();
+        }
+      }
+    };
+  });
+}
+
+function emptyHTML(){
+  return `<div class="empty">
+    <h3>Henüz kayıt yok</h3>
+    <p>Sistem gereksinimlerinden başlayın, altına yazılım gereksinimlerini bağlayın, sonra story ve task açın. Elinizde hazır bir liste varsa CSV olarak içe aktarın.</p>
+  </div>`;
+}
+
+/* =========================================================================
+   Sağ panel
+   ========================================================================= */
+function renderInspector(){
+  const app = document.getElementById('app');
+  const ins = document.getElementById('inspector');
+
+  // İzleme ve Kapsanmayanlar sekmelerinde sidebar asla açılmaz (tam genişlik)
+  if(state.view === 'matrix' || state.view === 'gaps'){
+    app.classList.remove('inspect');
+    ins.innerHTML = '';
+    return;
+  }
+
+  // Sistem, Yazılım ve İş Kalemleri sekmelerinde sidebar hep açık tutulur
+  app.classList.add('inspect');
+
+  let it = byId(state.sel);
+  if(!it && state.items.length){
+    const vTypes = state.view === 'sys' ? ['SYS'] : (state.view === 'sw' ? ['SW'] : (state.view === 'agile' ? ['EPIC','STORY','TASK'] : null));
+    if(vTypes){
+      const first = state.items.find(i => vTypes.includes(i.type));
+      if(first){
+        state.sel = first.id;
+        it = first;
+        const row = document.querySelector(`tr[data-id="${cssEsc(it.id)}"]`);
+        if(row) row.classList.add('sel');
+      }
+    }
+  }
+
+  if(!it){
+    ins.innerHTML = `
+      <div class="empty" style="padding:48px 24px">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="opacity:.4;margin-bottom:10px"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="11" y2="17"></line></svg>
+        <h3>Düzenlenecek madde seçin</h3>
+        <p>Sol listeden bir satıra tıklayarak detaylarını buradan anlık olarak düzenleyebilirsiniz.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const agile = ['EPIC','STORY','TASK'].includes(it.type);
+  const isTest = it.type === 'TEST';
+  const ls = linksOf(it);
+  const parents = state.items.filter(p=>p.id!==it.id && !isDescendant(p.id,it.id));
+  const bl = backlinks(it.id);
+  const statusOptions = isTest ? TEST_STATUS : STATUS;
+
+  ins.innerHTML = `
+  <div class="insp-head">
+    <div class="row">
+      <span class="chip ${it.type}">${TYPES[it.type].prefix}</span>
+      <input class="idfield" id="f_id" value="${esc(it.id)}" title="ID'yi değiştirin; bağlantılar otomatik güncellenir">
+      <div style="flex:1"></div>
+      <button class="btn" id="openModalFromInsp" title="Geniş modalda görüntüle" style="font-size:12px;padding:3px 8px">🔍 Detay</button>
+    </div>
+  </div>
+
+  <div class="field"><label for="f_title">${isTest ? 'Test Senaryosu Başlığı' : 'Başlık'}</label>
+    <textarea id="f_title" rows="4" placeholder="${isTest ? 'Test edilen işlev / durum...' : (agile?'Kullanıcı olarak …':'Sistem … yapabilmelidir')}" style="min-height:92px;resize:vertical">${esc(it.title)}</textarea></div>
+
+  <div class="field"><label for="f_desc">${isTest ? 'Test Adımları / Ön Koşul & Beklenen Sonuç' : 'Açıklama / kabul ölçütü'}</label>
+    <textarea id="f_desc" rows="5" placeholder="${isTest ? '1. Adım: ...\n2. Adım: ...\nBeklenen Sonuç: ...' : (agile?'Verildiğinde … olduğunda … o zaman …':'Ölçülebilir, tek bir davranış tanımlayın.')}" style="min-height:115px;resize:vertical">${esc(it.desc)}</textarea></div>
+
+  <div class="field"><div class="two">
+    <div><label for="f_type">Tür</label><select id="f_type">
+      ${Object.keys(TYPES).map(t=>`<option value="${t}" ${it.type===t?'selected':''}>${TYPES[t].label}</option>`).join('')}
+    </select></div>
+    <div>
+      <label>Üst madde</label>
+      <div class="rich-select-box" id="parentSelectBox">
+        <div class="rich-select-trigger" id="parentTrigger" tabindex="0" role="button" aria-haspopup="listbox">
+          <span class="sel-val" id="parentTriggerText">
+            ${it.parent && byId(it.parent) ? `
+              <span class="chip ${byId(it.parent).type}" style="border:0;padding:0 2px;font-size:10px">${TYPES[byId(it.parent).type].prefix}</span>
+              <span style="font-family:var(--mono);font-size:11.5px;font-weight:600">${esc(it.parent)}</span>
+              <span style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:68px" title="${esc(byId(it.parent).title)}">${esc(byId(it.parent).title)}</span>
+            ` : `<span class="ph">— kök —</span>`}
+          </span>
+          <span class="caret">▼</span>
+        </div>
+        <div class="rich-dropdown" id="parentDropdown">
+          <div class="rich-drop-search">
+            <input type="text" id="parentSearch" placeholder="Üst madde ID veya başlık ara..." autocomplete="off">
+          </div>
+          <div class="rich-drop-filters" id="parentFilters">
+            <button type="button" class="rich-filter-btn active" data-pfilter="ALL">Tümü</button>
+            <button type="button" class="rich-filter-btn" data-pfilter="SYS">SG</button>
+            <button type="button" class="rich-filter-btn" data-pfilter="SW">YG</button>
+            <button type="button" class="rich-filter-btn" data-pfilter="EPIC">EP</button>
+            <button type="button" class="rich-filter-btn" data-pfilter="STORY">ST</button>
+          </div>
+          <div class="rich-drop-list" id="parentList"></div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="field"><div class="two">
+    <div><label for="f_status">${isTest ? 'Test durumu' : 'Durum'}</label><select id="f_status">
+      ${isTest
+        ? TEST_STATUS.map(s=>`<option value="${s}" ${it.status===s?'selected':''}>${TEST_STATUS_ICONS[s]||''} ${s}</option>`).join('')
+        : STATUS.map(s=>`<option ${it.status===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+    <div><label for="f_priority">Öncelik</label><select id="f_priority">
+      ${PRIO.map(s=>`<option ${it.priority===s?'selected':''}>${s}</option>`).join('')}</select></div>
+  </div></div>
+
+  <div class="field"><div class="two">
+    <div><label for="f_owner">${isTest ? 'Test uzmanı' : 'Sorumlu'}</label><input type="text" id="f_owner" value="${esc(it.owner)}"></div>
+    ${isTest
+      ? `<div><label for="f_testType">Test türü</label><select id="f_testType">
+          ${TEST_TYPES.map(t=>`<option value="${t}" ${it.testType===t?'selected':''}>${t}</option>`).join('')}</select></div>`
+      : (agile
+        ? `<div><label for="f_points">Story puanı</label><input type="text" id="f_points" value="${esc(it.points)}" placeholder="1, 2, 3, 5…"></div>`
+        : `<div><label for="f_verification">Doğrulama</label><select id="f_verification">
+            ${VERIF.map(v=>`<option value="${v}" ${it.verification===v?'selected':''}>${v||'—'}</option>`).join('')}</select></div>`)}
+  </div></div>
+
+  <div class="field">
+    <label>${isTest ? 'Test edilen gereksinimler (SG / YG / Story)' : 'Bağlantılar (bu madde neyi karşılıyor)'}</label>
+    <div class="rich-select-box" id="linkSelectBox">
+      <div class="rich-select-trigger" id="linkTrigger" tabindex="0" role="button" aria-haspopup="listbox">
+        <span class="ph">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.65"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <span id="linkTriggerText">Bağlantı seç veya ara...</span>
+        </span>
+        <span class="caret">▼</span>
+      </div>
+      <div class="rich-dropdown" id="linkDropdown">
+        <div class="rich-drop-search">
+          <input type="text" id="linkSearch" placeholder="Gereksinim ID veya başlık ara..." autocomplete="off">
+        </div>
+        <div class="rich-drop-filters" id="linkFilters">
+          <button type="button" class="rich-filter-btn active" data-filter="ALL">Tümü</button>
+          <button type="button" class="rich-filter-btn" data-filter="SYS">SG</button>
+          <button type="button" class="rich-filter-btn" data-filter="SW">YG</button>
+          <button type="button" class="rich-filter-btn" data-filter="EPIC">EP</button>
+          <button type="button" class="rich-filter-btn" data-filter="STORY">ST</button>
+          <button type="button" class="rich-filter-btn" data-filter="TASK">GOR</button>
+          <button type="button" class="rich-filter-btn" data-filter="TEST">TC</button>
+        </div>
+        <div class="rich-drop-list" id="linkList"></div>
+        <div id="linkCustomAdd" class="rich-drop-custom-add" style="display:none"></div>
+      </div>
+    </div>
+    <div class="linklist" id="inspectorLinkList"></div>
+  </div>
+
+  <div class="field">
+    <label>Bu maddeye bağlananlar</label>
+    <div class="linklist" id="inspectorBacklinksList">${bl.length?bl.map(b=>`<span class="lk" title="${esc(b.title)}"><span class="chip ${b.type}" style="border:0;padding:0 2px;font-size:10px">${TYPES[b.type].prefix}</span><span class="linkchip" data-go="${esc(b.id)}">${esc(b.id)}</span><button type="button" data-unlink-backlink="${esc(b.id)}" title="Bu bağlantıyı kaldır">✕</button></span>`).join(''):'<span class="muted small">Henüz yok</span>'}</div>
+  </div>
+
+  <div class="field"><label for="f_tags">Etiketler</label>
+    <input type="text" id="f_tags" value="${esc(it.tags)}" placeholder="güvenlik, arayüz, ddt"></div>
+
+  <div class="insp-foot">
+    ${(it.type==='TASK'||it.type==='TEST')?'':`<button class="btn" id="addChild">Alt madde ekle</button>`}
+    <div style="flex:1"></div>
+    <button class="btn danger" id="delItem">Sil</button>
+  </div>`;
+
+  const bind = (fid, key, after)=>{
+    const el = document.getElementById(fid);
+    if(!el) return;
+    el.addEventListener('change', ()=>{ it[key] = el.value; save(); (after||render)(); });
+    if(el.tagName==='INPUT'||el.tagName==='TEXTAREA'){
+      el.addEventListener('input', ()=>{ it[key]=el.value; save(); refreshRowLight(it); });
+    }
+  };
+  bind('f_title','title'); bind('f_desc','desc'); bind('f_owner','owner');
+  bind('f_points','points'); bind('f_tags','tags');
+  bind('f_status','status'); bind('f_priority','priority'); bind('f_verification','verification');
+  bind('f_type','type'); bind('f_testType','testType');
+
+  const idEl = document.getElementById('f_id');
+  if(idEl){
+    idEl.addEventListener('input', () => {
+      const val = idEl.value.trim();
+      const duplicate = state.items.some(i => i.id.toLowerCase() === val.toLowerCase() && i.id !== it.id);
+      idEl.classList.toggle('invalid-id', duplicate || !val);
+      if(duplicate){
+        idEl.title = `UYARI: '${val}' ID'si sistemde zaten mevcut!`;
+      } else if(!val){
+        idEl.title = 'ID boş olamaz!';
+      } else {
+        idEl.title = "ID'yi değiştirmek için Enter'a basın veya kutudan çıkın";
+      }
+    });
+
+    const applyId = () => {
+      const val = idEl.value.trim();
+      if(!val || val === it.id){
+        idEl.value = it.id;
+        idEl.classList.remove('invalid-id');
+        return;
+      }
+      const ok = renameId(it.id, val);
+      if(!ok){
+        idEl.value = it.id;
+        idEl.classList.remove('invalid-id');
+      } else {
+        render();
+      }
+    };
+
+    idEl.addEventListener('change', applyId);
+    idEl.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        idEl.blur();
+      } else if(e.key === 'Escape'){
+        idEl.value = it.id;
+        idEl.classList.remove('invalid-id');
+        idEl.blur();
+      }
+    });
+  }
+
+  setupParentDropdown(it, ins);
+  setupLinkDropdown(it, ins);
+
+  ins.querySelectorAll('[data-unlink-backlink]').forEach(b=>{
+    b.onclick = e=>{
+      e.stopPropagation();
+      const srcId = b.dataset.unlinkBacklink;
+      const src = byId(srcId);
+      if(src){
+        src.links = linksOf(src).filter(x=>x!==it.id).join(',');
+        save();
+        renderInspector();
+        renderMain();
+        toast(`${srcId} ile ${it.id} arasındaki bağlantı kaldırıldı.`);
+      }
+    };
+  });
+
+  const ac = document.getElementById('addChild');
+  if(ac) ac.onclick=()=> addItem(it.type==='EPIC'?'STORY': it.type==='STORY'?'TASK': it.type, it.id);
+  document.getElementById('delItem').onclick=()=>removeItem(it.id);
+
+  const btnDet = document.getElementById('openModalFromInsp');
+  if(btnDet) btnDet.onclick = () => openDetailModal(it.id);
+
+  wireRowLinks(ins);
+}
+
+function setupParentDropdown(it, ins){
+  const box = ins.querySelector('#parentSelectBox');
+  const trigger = ins.querySelector('#parentTrigger');
+  const dropdown = ins.querySelector('#parentDropdown');
+  const searchInput = ins.querySelector('#parentSearch');
+  const filterBtns = ins.querySelectorAll('#parentFilters .rich-filter-btn');
+  const listEl = ins.querySelector('#parentList');
+  if(!box || !trigger || !dropdown) return;
+
+  let activeFilter = 'ALL';
+  let searchTerm = '';
+  let highlightedIndex = -1;
+
+  const updateTriggerText = ()=>{
+    const triggerTextEl = ins.querySelector('#parentTriggerText');
+    if(!triggerTextEl) return;
+    if(it.parent){
+      const p = byId(it.parent);
+      if(p){
+        triggerTextEl.innerHTML = `
+          <span class="chip ${p.type}" style="border:0;padding:0 2px;font-size:10px">${TYPES[p.type].prefix}</span>
+          <span style="font-family:var(--mono);font-size:11.5px;font-weight:600">${esc(p.id)}</span>
+          <span style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:68px" title="${esc(p.title)}">${esc(p.title)}</span>
+        `;
+      } else {
+        triggerTextEl.innerHTML = `<span style="font-family:var(--mono);font-size:11.5px">${esc(it.parent)}</span>`;
+      }
+    } else {
+      triggerTextEl.innerHTML = `<span class="ph">— kök —</span>`;
+    }
+  };
+
+  const renderItems = ()=>{
+    const candidates = state.items.filter(p => p.id !== it.id && !isDescendant(p.id, it.id));
+    const filtered = candidates.filter(x=>{
+      if(activeFilter !== 'ALL' && x.type !== activeFilter) return false;
+      if(searchTerm){
+        const q = searchTerm.toLowerCase();
+        const str = `${x.id} ${x.title} ${x.desc||''} ${x.owner||''}`.toLowerCase();
+        if(!str.includes(q)) return false;
+      }
+      return true;
+    });
+
+    let html = '';
+    if(!searchTerm || 'kök — kök — kok'.includes(searchTerm.toLowerCase())){
+      const isRootSel = !it.parent;
+      html += `<div class="rich-drop-item ${isRootSel?'selected':''}" data-id="" role="option" aria-selected="${isRootSel}">
+        <div class="check">${isRootSel?'✓':''}</div>
+        <div class="rich-drop-item-content">
+          <div class="rich-drop-item-head">
+            <span style="font-size:12px;font-weight:500;color:var(--ink)">— Kök Madde —</span>
+            <span style="font-size:11px;color:var(--muted)">(Üst madde yok)</span>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    if(!filtered.length && (!html || searchTerm)){
+      html += `<div class="rich-drop-empty">Eşleşen üst madde bulunamadı</div>`;
+    } else {
+      html += filtered.map((x, idx)=>{
+        const isSel = it.parent === x.id;
+        const isHigh = idx === highlightedIndex;
+        const stCls = (x.status||'acik').toLowerCase()
+          .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+          .replace(/[^a-z]/g,'');
+        return `<div class="rich-drop-item ${isSel?'selected':''} ${isHigh?'highlighted':''}" data-id="${esc(x.id)}" data-idx="${idx}" role="option" aria-selected="${isSel}">
+          <div class="check">${isSel?'✓':''}</div>
+          <div class="rich-drop-item-content">
+            <div class="rich-drop-item-head">
+              <span class="chip ${x.type}">${TYPES[x.type].prefix}</span>
+              <span class="rich-drop-item-id">${esc(x.id)}</span>
+              <span class="rich-drop-item-title" title="${esc(x.title)}">${esc(x.title) || '<span class="muted">(başlıksız)</span>'}</span>
+            </div>
+            <div class="rich-drop-item-sub">
+              <span><span class="dot ${stCls}"></span> ${esc(x.status||'Açık')}</span>
+              ${x.priority ? `<span>· ${esc(x.priority)}</span>` : ''}
+              ${x.owner ? `<span>· ${esc(x.owner)}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll('.rich-drop-item').forEach(itemEl=>{
+      itemEl.onclick = (e)=>{
+        e.stopPropagation();
+        it.parent = itemEl.dataset.id;
+        save();
+        updateTriggerText();
+        closeDropdown();
+        renderMain();
+      };
+      itemEl.onmouseenter = ()=>{
+        highlightedIndex = parseInt(itemEl.dataset.idx, 10);
+        listEl.querySelectorAll('.rich-drop-item').forEach((el, idx)=>{
+          el.classList.toggle('highlighted', idx === highlightedIndex);
+        });
+      };
+    });
+
+    const highEl = listEl.querySelector('.rich-drop-item.highlighted');
+    if(highEl) highEl.scrollIntoView({block:'nearest'});
+  };
+
+  const openDropdown = ()=>{
+    const linkDrop = ins.querySelector('#linkDropdown');
+    const linkTrig = ins.querySelector('#linkTrigger');
+    if(linkDrop && linkTrig){ linkDrop.classList.remove('open'); linkTrig.classList.remove('open'); }
+
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    highlightedIndex = 0;
+    setTimeout(()=>searchInput.focus(), 30);
+    renderItems();
+  };
+
+  const closeDropdown = ()=>{
+    trigger.classList.remove('open');
+    dropdown.classList.remove('open');
+    highlightedIndex = -1;
+  };
+
+  trigger.onclick = (e)=>{
+    e.stopPropagation();
+    if(dropdown.classList.contains('open')) closeDropdown();
+    else openDropdown();
+  };
+
+  trigger.onkeydown = (e)=>{
+    if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      openDropdown();
+    }
+  };
+
+  searchInput.onclick = e => e.stopPropagation();
+  searchInput.oninput = (e)=>{
+    searchTerm = e.target.value;
+    highlightedIndex = 0;
+    renderItems();
+  };
+  searchInput.onkeydown = (e)=>{
+    const items = listEl.querySelectorAll('.rich-drop-item');
+    if(e.key==='Escape'){
+      closeDropdown();
+      trigger.focus();
+    } else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(items.length){
+        highlightedIndex = (highlightedIndex + 1) % items.length;
+        renderItems();
+      }
+    } else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(items.length){
+        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+        renderItems();
+      }
+    } else if(e.key==='Enter'){
+      e.preventDefault();
+      if(items.length && highlightedIndex >= 0 && items[highlightedIndex]){
+        it.parent = items[highlightedIndex].dataset.id;
+        save();
+        updateTriggerText();
+        closeDropdown();
+        renderMain();
+      }
+    }
+  };
+
+  filterBtns.forEach(btn=>{
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      filterBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.pfilter;
+      highlightedIndex = 0;
+      renderItems();
+    };
+  });
+
+  if(window._parentDropDocClick){
+    document.removeEventListener('click', window._parentDropDocClick);
+  }
+  window._parentDropDocClick = (e)=>{
+    if(!box.contains(e.target)) closeDropdown();
+  };
+  document.addEventListener('click', window._parentDropDocClick);
+
+  updateTriggerText();
+}
+
+function setupLinkDropdown(it, ins){
+  const box = ins.querySelector('#linkSelectBox');
+  const trigger = ins.querySelector('#linkTrigger');
+  const dropdown = ins.querySelector('#linkDropdown');
+  const searchInput = ins.querySelector('#linkSearch');
+  const filterBtns = ins.querySelectorAll('#linkFilters .rich-filter-btn');
+  const listEl = ins.querySelector('#linkList');
+  const customAddEl = ins.querySelector('#linkCustomAdd');
+  const chipsListEl = ins.querySelector('#inspectorLinkList');
+  if(!box || !trigger || !dropdown) return;
+
+  let activeFilter = 'ALL';
+  let searchTerm = '';
+  let highlightedIndex = -1;
+
+  const renderChips = ()=>{
+    const cur = linksOf(it);
+    if(!cur.length){
+      chipsListEl.innerHTML = '<span class="muted small">Bağlantı yok</span>';
+      return;
+    }
+    chipsListEl.innerHTML = cur.map(l=>{
+      const target = byId(l);
+      const isBad = !target;
+      const typeChip = target ? `<span class="chip ${target.type}" style="border:0;padding:0 2px;font-size:10px">${TYPES[target.type].prefix}</span>` : '';
+      const tip = target ? esc(target.title) : 'Tanımsız ID';
+      return `<span class="lk ${isBad?'bad':''}" title="${tip}">
+        ${typeChip}
+        <span class="linkchip" data-go="${esc(l)}">${esc(l)}</span>
+        <button type="button" data-unlink="${esc(l)}" title="Kaldır">✕</button>
+      </span>`;
+    }).join('');
+
+    chipsListEl.querySelectorAll('[data-unlink]').forEach(b=>{
+      b.onclick = (e)=>{
+        e.stopPropagation();
+        const unId = b.dataset.unlink;
+        it.links = linksOf(it).filter(x=>x!==unId).join(',');
+        save();
+        renderChips();
+        renderItems();
+        if(state.view==='matrix'||state.view==='gaps') renderMain();
+        else refreshRowTrace(it);
+      };
+    });
+    wireRowLinks(chipsListEl);
+  };
+
+  const renderItems = ()=>{
+    const cur = linksOf(it);
+    // current item and direct descendants excluded
+    const candidates = state.items.filter(x => x.id !== it.id && !isDescendant(x.id, it.id));
+    const filtered = candidates.filter(x=>{
+      if(activeFilter !== 'ALL' && x.type !== activeFilter) return false;
+      if(searchTerm){
+        const q = searchTerm.toLowerCase();
+        const str = `${x.id} ${x.title} ${x.desc||''} ${x.owner||''} ${x.tags||''}`.toLowerCase();
+        if(!str.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if(!filtered.length){
+      listEl.innerHTML = `<div class="rich-drop-empty">Eşleşen kayıt bulunamadı</div>`;
+      highlightedIndex = -1;
+    } else {
+      if(highlightedIndex >= filtered.length) highlightedIndex = 0;
+      listEl.innerHTML = filtered.map((x, idx)=>{
+        const isSel = cur.includes(x.id);
+        const isHigh = idx === highlightedIndex;
+        const stCls = (x.status||'acik').toLowerCase()
+          .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+          .replace(/[^a-z]/g,'');
+        return `<div class="rich-drop-item ${isSel?'selected':''} ${isHigh?'highlighted':''}" data-id="${esc(x.id)}" data-idx="${idx}" role="option" aria-selected="${isSel}">
+          <div class="check">${isSel?'✓':''}</div>
+          <div class="rich-drop-item-content">
+            <div class="rich-drop-item-head">
+              <span class="chip ${x.type}">${TYPES[x.type].prefix}</span>
+              <span class="rich-drop-item-id">${esc(x.id)}</span>
+              <span class="rich-drop-item-title" title="${esc(x.title)}">${esc(x.title) || '<span class="muted">(başlıksız)</span>'}</span>
+            </div>
+            <div class="rich-drop-item-sub">
+              <span><span class="dot ${stCls}"></span> ${esc(x.status||'Açık')}</span>
+              ${x.priority ? `<span>· Öncelik: ${esc(x.priority)}</span>` : ''}
+              ${x.verification ? `<span>· Doğrulama: ${esc(x.verification)}</span>` : ''}
+              ${x.owner ? `<span>· ${esc(x.owner)}</span>` : ''}
+              ${x.points ? `<span>· ${esc(x.points)} SP</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // Check custom add button if user typed something not matching exactly
+    const trimmed = searchTerm.trim();
+    if(trimmed && !candidates.some(x=>x.id.toLowerCase()===trimmed.toLowerCase())){
+      customAddEl.style.display = 'flex';
+      customAddEl.innerHTML = `<span>+</span> <span><strong>“${esc(trimmed)}”</strong> bağlantısı ekle</span>`;
+      customAddEl.onclick = ()=>{
+        addLink(trimmed);
+        searchInput.value = '';
+        searchTerm = '';
+        renderItems();
+      };
+    } else {
+      customAddEl.style.display = 'none';
+    }
+
+    listEl.querySelectorAll('.rich-drop-item').forEach(itemEl=>{
+      itemEl.onclick = (e)=>{
+        e.stopPropagation();
+        const clickedId = itemEl.dataset.id;
+        toggleLink(clickedId);
+      };
+      itemEl.onmouseenter = ()=>{
+        highlightedIndex = parseInt(itemEl.dataset.idx, 10);
+        listEl.querySelectorAll('.rich-drop-item').forEach((el, idx)=>{
+          el.classList.toggle('highlighted', idx === highlightedIndex);
+        });
+      };
+    });
+
+    const highEl = listEl.querySelector('.rich-drop-item.highlighted');
+    if(highEl) highEl.scrollIntoView({block:'nearest'});
+  };
+
+  const addLink = (idToAdd)=>{
+    const cur = linksOf(it);
+    if(!cur.includes(idToAdd)){
+      cur.push(idToAdd);
+      it.links = cur.join(',');
+      save();
+      renderChips();
+      renderItems();
+      if(state.view==='matrix'||state.view==='gaps') renderMain();
+      else refreshRowTrace(it);
+    }
+  };
+
+  const toggleLink = (idToToggle)=>{
+    let cur = linksOf(it);
+    if(cur.includes(idToToggle)){
+      cur = cur.filter(x => x !== idToToggle);
+    } else {
+      cur.push(idToToggle);
+    }
+    it.links = cur.join(',');
+    save();
+    renderChips();
+    renderItems();
+    if(state.view==='matrix'||state.view==='gaps') renderMain();
+    else refreshRowTrace(it);
+  };
+
+  const openDropdown = ()=>{
+    const pDrop = ins.querySelector('#parentDropdown');
+    const pTrig = ins.querySelector('#parentTrigger');
+    if(pDrop && pTrig){ pDrop.classList.remove('open'); pTrig.classList.remove('open'); }
+
+    trigger.classList.add('open');
+    dropdown.classList.add('open');
+    highlightedIndex = 0;
+    setTimeout(()=>searchInput.focus(), 30);
+    renderItems();
+  };
+
+  const closeDropdown = ()=>{
+    trigger.classList.remove('open');
+    dropdown.classList.remove('open');
+    highlightedIndex = -1;
+  };
+
+  trigger.onclick = (e)=>{
+    e.stopPropagation();
+    if(dropdown.classList.contains('open')) closeDropdown();
+    else openDropdown();
+  };
+
+  trigger.onkeydown = (e)=>{
+    if(e.key==='Enter'||e.key===' '||e.key==='ArrowDown'){
+      e.preventDefault();
+      openDropdown();
+    }
+  };
+
+  searchInput.onclick = e => e.stopPropagation();
+  searchInput.oninput = (e)=>{
+    searchTerm = e.target.value;
+    highlightedIndex = 0;
+    renderItems();
+  };
+  searchInput.onkeydown = (e)=>{
+    const items = listEl.querySelectorAll('.rich-drop-item');
+    if(e.key==='Escape'){
+      closeDropdown();
+      trigger.focus();
+    } else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(items.length){
+        highlightedIndex = (highlightedIndex + 1) % items.length;
+        renderItems();
+      }
+    } else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(items.length){
+        highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+        renderItems();
+      }
+    } else if(e.key==='Enter'){
+      e.preventDefault();
+      if(items.length && highlightedIndex >= 0 && items[highlightedIndex]){
+        toggleLink(items[highlightedIndex].dataset.id);
+      } else if(searchTerm.trim()){
+        addLink(searchTerm.trim());
+        searchInput.value = '';
+        searchTerm = '';
+        renderItems();
+      }
+    }
+  };
+
+  filterBtns.forEach(btn=>{
+    btn.onclick = (e)=>{
+      e.stopPropagation();
+      filterBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      highlightedIndex = 0;
+      renderItems();
+    };
+  });
+
+  if(window._linkDropDocClick){
+    document.removeEventListener('click', window._linkDropDocClick);
+  }
+  window._linkDropDocClick = (e)=>{
+    if(!box.contains(e.target)) closeDropdown();
+  };
+  document.addEventListener('click', window._linkDropDocClick);
+
+  renderChips();
+}
+
+function refreshRowTrace(it){
+  const tr = document.querySelector(`tr[data-id="${cssEsc(it.id)}"] td:nth-child(5) .cell`);
+  if(tr){
+    const ls = linksOf(it);
+    const trace = ls.length
+      ? ls.map(x=>`<span class="linkchip" data-go="${esc(x)}">${esc(x)}</span>`).join('')
+      : (it.type==='SW'||it.type==='STORY'||it.type==='TASK'||it.type==='TEST' ? '<span class="muted small">bağ yok</span>' : coverBadge(it));
+    const linkBtn = (it.type==='SW' || it.type==='EPIC' || it.type==='STORY' || it.type==='TASK' || it.type==='TEST')
+      ? `<button type="button" class="row-link-btn" data-pick-link="${it.id}" title="Gereksinim bağla / düzenle">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        </button>`
+      : '';
+    tr.innerHTML = `<div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:2px">${trace}</div>${linkBtn}`;
+    wireRowLinks(tr);
+    const btn = tr.querySelector('[data-pick-link]');
+    if(btn){
+      btn.onclick = e => {
+        e.preventDefault(); e.stopPropagation();
+        openRowLinkPopover(btn, btn.dataset.pickLink);
+      };
+    }
+  }
+}
+function refreshRowLight(it){
+  const tr = document.querySelector(`tr[data-id="${cssEsc(it.id)}"] .title-txt`);
+  if(tr) tr.textContent = it.title || '(başlıksız)';
+}
+
+/* =========================================================================
+   Gelişmiş Detay Modalı (ID Tıklaması)
+   ========================================================================= */
+function openDetailModal(id){
+  const it = byId(id);
+  if(!it){ toast('Madde bulunamadı: '+id); return; }
+
+  const parent = it.parent ? byId(it.parent) : null;
+  const kids = childrenOf(it.id);
+
+  const st = (it.status||'Açık').toLowerCase()
+    .replace(/ı/g,'i').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u')
+    .replace(/[^a-z]/g,'');
+
+  // İzlenebilirlik Verilerini Derleme
+  let traceContentHtml = '';
+  let totalLinks = 0;
+
+  function renderCardList(items, emptyMsg){
+    if(!items || !items.length){
+      return `<div class="empty" style="padding:14px;background:#fafbfc;border:1px dashed var(--line);border-radius:6px"><p style="margin:0;font-size:12px;color:var(--muted)">${emptyMsg}</p></div>`;
+    }
+    return `<div class="detail-card-list">` + items.map(item => {
+      const itemSt = (item.status||'Açık').toLowerCase().replace(/[^a-z]/g,'');
+      const isCardTest = item.type === 'TEST';
+      const cardTestIcon = (isCardTest && TEST_STATUS_ICONS[item.status||'Taslak']) ? `<span style="font-weight:700;margin-right:2px">${TEST_STATUS_ICONS[item.status||'Taslak']}</span> ` : '';
+      return `
+        <div class="detail-card" data-detail="${esc(item.id)}">
+          <div class="dc-head">
+            <span class="chip ${item.type}">${TYPES[item.type].prefix}</span>
+            <span style="font-family:var(--mono);font-weight:700">${esc(item.id)}</span>
+            ${item.points ? `<span style="font-size:11px;color:var(--story);font-weight:600">${esc(item.points)} SP</span>` : ''}
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:4px">
+              <span class="dot ${itemSt}"></span>${cardTestIcon}${esc(item.status||'')}
+            </span>
+          </div>
+          <div class="dc-title">${esc(item.title)||'<span class="muted">(başlıksız)</span>'}</div>
+        </div>
+      `;
+    }).join('') + `</div>`;
+  }
+
+  let reqList = [];
+  let reqTitle = 'İlgili Gereksinimler';
+  let reqEmptyMsg = 'Bağlı gereksinim bulunmuyor.';
+  let reqExtraHtml = '';
+
+  let agileList = [];
+  let agileTitle = 'İlgili İş Kalemleri';
+  let agileEmptyMsg = 'Bağlı iş kalemi bulunmuyor.';
+
+  let testList = [];
+  let testTitle = 'Bağlı Test Senaryoları & Test Süreci';
+  let testEmptyMsg = 'Bağlı test senaryosu bulunmuyor.';
+
+  if(it.type === 'SYS'){
+    // Gereksinimler: Karşılayan Yazılım Gereksinimleri
+    reqList = backlinks(it.id).filter(b => b.type === 'SW');
+    reqTitle = 'Karşılayan Yazılım Gereksinimleri (YG)';
+    reqEmptyMsg = 'Bu sistem gereksinimine bağlı bir yazılım gereksinimi bulunmuyor.';
+    
+    // İş Kalemleri
+    const directAgile = backlinks(it.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+    const swAgileMap = new Map();
+    directAgile.forEach(a => swAgileMap.set(a.id, a));
+    reqList.forEach(s => {
+      backlinks(s.id).forEach(b => {
+        if(['EPIC','STORY','TASK'].includes(b.type)) swAgileMap.set(b.id, b);
+      });
+    });
+    agileList = Array.from(swAgileMap.values());
+    agileTitle = 'İlgili İş Kalemleri (Epic / Story / Task)';
+    agileEmptyMsg = 'Bu sistem gereksinimine doğrudan veya yazılım gereksinimleri üzerinden bağlı bir iş kalemi bulunmuyor.';
+
+    // Test Süreçleri
+    testList = backlinks(it.id).filter(b => b.type === 'TEST');
+    testTitle = 'Bağlı Test Senaryoları & Test Koşum Durumu';
+    testEmptyMsg = 'Bu sistem gereksinimi için henüz bir test senaryosu bağlanmamış.';
+
+    const cls = reqList.length && agileList.length ? 'ok' : (reqList.length || agileList.length ? 'part' : 'no');
+    const txt = cls === 'ok' ? 'Tam Karşılandı (Yazılım + İş Kalemi)' : (cls === 'part' ? 'Kısmi Karşılandı' : 'Karşılanmadı (Eksik Bağlantı)');
+    reqExtraHtml = `
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;padding:12px 16px;border:1px solid var(--line);border-radius:8px;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">İzlenebilirlik Durumu</span>
+        <span class="cover ${cls}">${txt}</span>
+      </div>
+    `;
+  } else if(it.type === 'SW'){
+    reqList = linksOf(it).map(byId).filter(x => x && x.type === 'SYS');
+    reqTitle = 'Karşıladığı Sistem Gereksinimleri (SG)';
+    reqEmptyMsg = 'Bu yazılım gereksinimi henüz bir Sistem Gereksinimine (SG) bağlanmamış.';
+
+    agileList = backlinks(it.id).filter(b => ['EPIC','STORY','TASK'].includes(b.type));
+    agileTitle = 'Bu Gereksinimi Uygulayan İş Kalemleri (Story / Task)';
+    agileEmptyMsg = 'Bu yazılım gereksinimi için henüz bir Story veya Task açılmamış.';
+
+    testList = backlinks(it.id).filter(b => b.type === 'TEST');
+    testTitle = 'Bağlı Test Senaryoları & Test Süreci';
+    testEmptyMsg = 'Bu yazılım gereksinimi için henüz bir test senaryosu bağlanmamış.';
+  } else if(it.type === 'TEST'){
+    reqList = linksOf(it).map(byId).filter(x => x && (x.type === 'SYS' || x.type === 'SW'));
+    reqTitle = 'Test Ettiği Gereksinimler (SG / YG)';
+    reqEmptyMsg = 'Bu test senaryosu henüz bir sistem veya yazılım gereksinimine bağlanmamış.';
+
+    agileList = linksOf(it).map(byId).filter(x => x && ['EPIC','STORY','TASK'].includes(x.type));
+    agileTitle = 'Test Ettiği İş Kalemleri (Story / Task)';
+    agileEmptyMsg = 'Bu test senaryosu henüz bir iş kalemine bağlanmamış.';
+
+    testList = kids.concat(backlinks(it.id).filter(b => b.type === 'TEST'));
+    testTitle = 'İlişkili / Alt Test Senaryoları';
+    testEmptyMsg = 'İlişkili başka bir test senaryosu bulunmuyor.';
+  } else {
+    // Agile (Epic / Story / Task)
+    reqList = linksOf(it).map(byId).filter(x => x && (x.type === 'SYS' || x.type === 'SW'));
+    reqTitle = 'Bağlı Olduğu Gereksinimler (SG / YG)';
+    reqEmptyMsg = 'Bu iş kalemi herhangi bir sistem veya yazılım gereksinimine bağlanmamış.';
+
+    agileList = kids.concat(backlinks(it.id).filter(b => !reqList.some(r => r.id === b.id) && b.type !== 'TEST'));
+    agileTitle = 'Alt / İlişkili İş Kalemleri';
+    agileEmptyMsg = 'Bağlı alt iş kalemi bulunmuyor.';
+
+    testList = backlinks(it.id).filter(b => b.type === 'TEST');
+    testTitle = 'Bağlı Test Senaryoları & Test Süreci';
+    testEmptyMsg = 'Bu iş kalemi için henüz bir test senaryosu bağlanmamış.';
+  }
+
+  const isTest = it.type === 'TEST';
+  const metaBox2Label = isTest ? 'Test Türü' : 'Doğrulama Yöntemi';
+  const metaBox2Val = isTest ? (it.testType || '<span class="muted">—</span>') : (esc(it.verification) || '<span class="muted">—</span>');
+  const metaBox1Label = isTest ? 'Test Uzmanı' : 'Sorumlu';
+  const testBadgeIcon = (isTest && TEST_STATUS_ICONS[it.status||'Taslak']) ? `<span style="font-weight:700;margin-right:2px">${TEST_STATUS_ICONS[it.status||'Taslak']}</span> ` : '';
+
+  const html = `
+    <div class="sheet detail-sheet">
+      <header>
+        <div class="detail-header-top">
+          <div class="detail-header-badges">
+            <span class="chip ${it.type}">${TYPES[it.type].prefix}</span>
+            <span class="detail-header-id">${esc(it.id)}</span>
+            <span class="detail-badge-pill"><span class="dot ${st}"></span> ${testBadgeIcon}${esc(it.status|| (isTest?'Taslak':'Açık'))}</span>
+            ${it.priority ? `<span class="detail-badge-pill">Öncelik: <strong style="color:var(--ink)">${esc(it.priority)}</strong></span>` : ''}
+            ${it.points ? `<span class="detail-badge-pill" style="color:var(--story);font-weight:600">${esc(it.points)} SP</span>` : ''}
+          </div>
+          <button class="btn ghost" onclick="closeModal()" title="Kapat" style="font-size:16px;padding:4px 9px">✕</button>
+        </div>
+        <h2 class="detail-head-title">${esc(it.title) || '<span class="muted">(Başlık belirtilmemiş)</span>'}</h2>
+      </header>
+
+      <div class="detail-tab-nav">
+        <button type="button" class="detail-tab-btn active" data-dtab="summary">Özet</button>
+        <button type="button" class="detail-tab-btn" data-dtab="reqs">Gereksinimler <span class="dtab-count">${reqList.length}</span></button>
+        <button type="button" class="detail-tab-btn" data-dtab="agile">İş Kalemleri <span class="dtab-count">${agileList.length}</span></button>
+        <button type="button" class="detail-tab-btn" data-dtab="tests">Test Süreçleri <span class="dtab-count">${testList.length}</span></button>
+        <button type="button" class="detail-tab-btn" data-dtab="extra">Ek</button>
+      </div>
+
+      <div class="body">
+        <!-- 1. Özet Sekmesi -->
+        <div class="detail-tab-pane active" data-dtab-content="summary">
+          <div class="detail-section">
+            <div class="detail-section-title">${isTest ? 'Test Adımları & Beklenen Sonuç' : 'Açıklama / Kabul Ölçütleri'}</div>
+            <div class="detail-desc-box">${esc(it.desc) || `<span class="muted">${isTest ? 'Test adımları veya açıklaması girilmemiş.' : 'Açıklama veya kabul ölçütü girilmemiş.'}</span>`}</div>
+          </div>
+        </div>
+
+        <!-- 2. Gereksinimler Sekmesi -->
+        <div class="detail-tab-pane" data-dtab-content="reqs">
+          ${reqExtraHtml}
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <span>${reqTitle}</span>
+              <span class="count">${reqList.length}</span>
+            </div>
+            ${renderCardList(reqList, reqEmptyMsg)}
+          </div>
+        </div>
+
+        <!-- 3. İş Kalemleri Sekmesi -->
+        <div class="detail-tab-pane" data-dtab-content="agile">
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <span>${agileTitle}</span>
+              <span class="count">${agileList.length}</span>
+            </div>
+            ${renderCardList(agileList, agileEmptyMsg)}
+          </div>
+        </div>
+
+        <!-- 4. Test Süreçleri Sekmesi -->
+        <div class="detail-tab-pane" data-dtab-content="tests">
+          <div class="detail-section">
+            <div class="detail-section-title">
+              <span>${testTitle}</span>
+              <span class="count">${testList.length}</span>
+            </div>
+            ${renderCardList(testList, testEmptyMsg)}
+          </div>
+        </div>
+
+        <!-- 5. Ek Sekmesi (Sorumlu, Doğrulama vb.) -->
+        <div class="detail-tab-pane" data-dtab-content="extra">
+          <div class="detail-section">
+            <div class="detail-section-title">Sorumlu, Doğrulama ve Ek Bilgiler</div>
+            <div class="detail-meta-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px">
+              <div class="detail-meta-card">
+                <span class="meta-lbl">${metaBox1Label}</span>
+                <span class="meta-val" style="font-size:13px;font-weight:500">${esc(it.owner) || '<span class="muted">—</span>'}</span>
+              </div>
+              <div class="detail-meta-card">
+                <span class="meta-lbl">${metaBox2Label}</span>
+                <span class="meta-val" style="font-size:13px;font-weight:500">${metaBox2Val}</span>
+              </div>
+              <div class="detail-meta-card">
+                <span class="meta-lbl">Öncelik</span>
+                <span class="meta-val" style="font-size:13px;font-weight:500">${esc(it.priority) || '<span class="muted">—</span>'}</span>
+              </div>
+              ${it.points ? `
+                <div class="detail-meta-card">
+                  <span class="meta-lbl">Story Puanı</span>
+                  <span class="meta-val" style="font-size:13px;font-weight:600;color:var(--story)">${esc(it.points)} SP</span>
+                </div>
+              ` : ''}
+              <div class="detail-meta-card" style="grid-column:1/-1">
+                <span class="meta-lbl">Etiketler</span>
+                <span class="meta-val">${it.tags ? esc(it.tags).split(',').map(t=>`<span style="background:#eef0f3;padding:2px 8px;border-radius:4px;font-size:12px;display:inline-block;margin:2px">${esc(t.trim())}</span>`).join(' ') : '<span class="muted">—</span>'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('sheet').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+
+  const sheetEl = document.getElementById('sheet');
+  
+  // Tab geçişleri
+  const tabBtns = sheetEl.querySelectorAll('.detail-tab-btn');
+  const tabPanes = sheetEl.querySelectorAll('.detail-tab-pane');
+  tabBtns.forEach(btn => {
+    btn.onclick = () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const pane = sheetEl.querySelector(`.detail-tab-pane[data-dtab-content="${btn.dataset.dtab}"]`);
+      if(pane) pane.classList.add('active');
+    };
+  });
+
+  // Modal içindeki ID linklerine tıklama
+  sheetEl.querySelectorAll('[data-detail]').forEach(el => {
+    el.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openDetailModal(el.dataset.detail);
+    };
+  });
+}
+
+/* =========================================================================
+   CSV
+   ========================================================================= */
+const HEADERS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType'];
+const HEADER_TR = {
+  id:'id', type:'tur', parent:'ust_id', title:'baslik', desc:'aciklama', status:'durum',
+  priority:'oncelik', owner:'sorumlu', verification:'dogrulama', points:'puan',
+  links:'baglantilar', tags:'etiketler', testType:'test_turu'
+};
+const ALIASES = {};
+HEADERS.forEach(h=>{ ALIASES[h]=h; ALIASES[HEADER_TR[h]]=h; });
+Object.assign(ALIASES,{
+  'ust':'parent','parent_id':'parent','üst_id':'parent','üst':'parent',
+  'tür':'type','başlık':'title','açıklama':'desc','öncelik':'priority',
+  'doğrulama':'verification','bağlantılar':'links','trace':'links','izlenebilirlik':'links',
+  'description':'desc','name':'title','summary':'title','story_points':'points','sp':'points',
+  'assignee':'owner','atanan':'owner','labels':'tags','etiket':'tags','durum_':'status',
+  'test_türü':'testType','test_turu':'testType','test_type':'testType'
+});
+const TYPE_ALIAS = {
+  sg:'SYS', sys:'SYS','sistem':'SYS','system':'SYS','sistem gereksinimi':'SYS',
+  yg:'SW', sw:'SW','yazilim':'SW','yazılım':'SW','software':'SW','yazılım gereksinimi':'SW','yazilim gereksinimi':'SW',
+  epic:'EPIC','ep':'EPIC', story:'STORY','st':'STORY','us':'STORY','user story':'STORY','kullanici hikayesi':'STORY',
+  task:'TASK','gor':'TASK','tsk':'TASK','gorev':'TASK','görev':'TASK',
+  test:'TEST','tc':'TEST','tst':'TEST','test senaryosu':'TEST','test_senaryosu':'TEST'
+};
+
+function csvEscape(v, d){
+  v = v==null?'':String(v);
+  return /["\n\r]|[,;]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
+}
+function toCSV(delim, items = state.items){
+  const head = HEADERS.map(h=>HEADER_TR[h]).join(delim);
+  const body = (items||[]).map(i=>HEADERS.map(h=>csvEscape(i[h],delim)).join(delim)).join('\r\n');
+  return head+'\r\n'+body;
+}
+function parseCSV(text){
+  text = text.replace(/^\uFEFF/,'');
+  const first = text.split(/\r?\n/)[0]||'';
+  const delim = (first.split(';').length > first.split(',').length) ? ';' : (first.split('\t').length>first.split(',').length?'\t':',');
+  const rows=[]; let row=[], cur='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    }else{
+      if(c==='"') q=true;
+      else if(c===delim){ row.push(cur); cur=''; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(c!=='\r') cur+=c;
+    }
+  }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c.trim()!==''));
+}
+function importCSV(text, mode){
+  const rows = parseCSV(text);
+  if(!rows.length){ toast('CSV içeriği boş.'); return; }
+
+  const firstRow = rows[0];
+  const mappedHead = firstRow.map(h=>{
+    const k = h.trim().toLowerCase().replace(/\s+/g,'_');
+    return ALIASES[k] || ALIASES[k.replace(/[ıİ]/g,'i')] || k;
+  });
+
+  const hasRecognizedHeader = mappedHead.some(h => HEADERS.includes(h));
+  let dataRows = [];
+  let head = [];
+
+  if(hasRecognizedHeader){
+    head = mappedHead;
+    dataRows = rows.slice(1);
+  } else {
+    dataRows = rows;
+    if(firstRow.length === 1){
+      head = ['title'];
+    } else if(firstRow.length === 2){
+      const col0 = firstRow[0].trim().toLowerCase();
+      if(TYPE_ALIAS[col0] || ['sg','yg','sys','sw','ep','us','tsk'].includes(col0)){
+        head = ['type','title'];
+      } else if(/^([A-Z]{2,3}-\d+)/i.test(col0)){
+        head = ['id','title'];
+      } else {
+        head = ['title','desc'];
+      }
+    } else {
+      head = HEADERS.slice(0, firstRow.length);
+    }
+  }
+
+  if(!dataRows.length){ toast('İçe aktarılacak veri satırı bulunamadı.'); return; }
+
+  const defaultType = state.view === 'sw' ? 'SW' : (state.view === 'agile' ? 'STORY' : 'SYS');
+  const pool = mode === 'replace' ? [] : state.items.slice();
+  const incoming = [];
+
+  for(const r of dataRows){
+    const o = {};
+    head.forEach((h, ix)=>{ if(HEADERS.includes(h)) o[h] = (r[ix]||'').trim(); });
+
+    const t = (o.type||'').toLowerCase();
+    o.type = TYPE_ALIAS[t] || (TYPES[o.type] ? o.type : (o.id ? guessType(o.id) : defaultType));
+    if(!TYPES[o.type]) o.type = defaultType;
+
+    if(!o.id){
+      o.id = generateNextImportId(o.type, o.parent||'', pool);
+    }
+
+    if(!o.status) o.status = 'Açık';
+    if(!o.priority) o.priority = 'Orta';
+
+    const normalizedItem = normalize(o);
+    pool.push(normalizedItem);
+    incoming.push(normalizedItem);
+  }
+
+  if(mode === 'replace'){
+    state.items = incoming;
+  } else {
+    incoming.forEach(n=>{
+      const ex = byId(n.id);
+      if(ex) Object.assign(ex, n);
+      else state.items.push(n);
+    });
+  }
+
+  state.sel = null;
+  save();
+  render();
+  toast(`${incoming.length} kayıt ${mode==='replace'?'yüklendi':'birleştirildi'}.`);
+}
+
+function generateNextImportId(type, parentId, existingList){
+  const t = TYPES[type] || TYPES.SYS;
+  if(t.dotted && parentId){
+    const base = parentId;
+    let n = 1;
+    const kids = existingList.filter(i=>i.id && i.id.startsWith(base+'.'));
+    kids.forEach(k=>{
+      const tail = k.id.slice(base.length+1);
+      if(/^\d+$/.test(tail)) n = Math.max(n, parseInt(tail,10)+1);
+    });
+    return base+'.'+n;
+  }
+  const re = new RegExp('^'+t.prefix+'-(\\d+)$');
+  let n = 0;
+  existingList.forEach(i=>{
+    if(i.id){
+      const m = re.exec(i.id);
+      if(m) n = Math.max(n, parseInt(m[1],10));
+    }
+  });
+  const num = n+1;
+  return t.prefix+'-'+(t.dotted ? String(num).padStart(3,'0') : num);
+}
+
+function guessType(id){
+  const p = (id||'').split('-')[0].toUpperCase();
+  for(const k in TYPES) if(TYPES[k].prefix===p) return k;
+  if(p==='SYS'||p==='SG') return 'SYS';
+  if(p==='SW'||p==='YG') return 'SW';
+  if(p==='EP'||p==='EPIC') return 'EPIC';
+  if(p==='ST'||p==='US'||p==='STORY') return 'STORY';
+  if(p==='GOR'||p==='TSK'||p==='TASK') return 'TASK';
+  if(p==='TC'||p==='TEST') return 'TEST';
+  return 'SYS';
+}
+
+/* ---------- CSV pencereleri ---------- */
+function openModal(html){
+  document.getElementById('sheet').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').onclick = e=>{ if(e.target.id==='modal') closeModal(); };
+
+function sanitizeFileName(name){
+  return (name||'Proje').trim()
+    .replace(/[çÇ]/g,'c').replace(/[ğĞ]/g,'g').replace(/[ıİ]/g,'i').replace(/[öÖ]/g,'o').replace(/[şŞ]/g,'s').replace(/[üÜ]/g,'u')
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .replace(/_+/g, '_');
+}
+
+function openExportModal(){
+  const ws = getActiveWorkspace();
+  const rawWsName = (ws && ws.name) ? ws.name : 'Gereksinimler';
+  const cleanWsName = sanitizeFileName(rawWsName);
+  const dateStr = new Date().toISOString().slice(0, 10);
+
+  const subsets = {
+    all: {
+      title: 'Tüm Kayıtlar',
+      slug: 'Tumu',
+      items: state.items
+    },
+    sg: {
+      title: 'Sistem Gereksinimleri (SG)',
+      slug: 'SG',
+      items: state.items.filter(i => i.type === 'SYS')
+    },
+    yg: {
+      title: 'Yazılım Gereksinimleri (YG)',
+      slug: 'YG',
+      items: state.items.filter(i => i.type === 'SW')
+    },
+    work: {
+      title: 'İş Kalemleri (Epic / Story / Task)',
+      slug: 'Is-Kalemleri',
+      items: state.items.filter(i => ['EPIC', 'STORY', 'TASK'].includes(i.type))
+    },
+    test: {
+      title: 'Test Senaryoları (TC)',
+      slug: 'Testler',
+      items: state.items.filter(i => i.type === 'TEST')
+    }
+  };
+
+  let currentScope = 'all';
+  let currentDelim = ',';
+
+  function getFileName(scopeKey){
+    const s = subsets[scopeKey] || subsets.all;
+    return `${cleanWsName}_${s.slug}_${dateStr}.csv`;
+  }
+
+  function getCsvContent(scopeKey, delim){
+    const s = subsets[scopeKey] || subsets.all;
+    return toCSV(delim, s.items);
+  }
+
+  openModal(`
+    <header>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="ws-modal-icon-box" style="background:#eff6ff;border-color:#bfdbfe;color:#2563eb">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </div>
+          <div>
+            <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--ink)">CSV Dışa Aktar / İndir</h3>
+            <p style="margin:3px 0 0;font-size:12.5px;color:var(--muted)">Proje: <strong style="color:var(--ink)">${esc(rawWsName)}</strong> · Toplam ${state.items.length} kayıt</p>
+          </div>
+        </div>
+        <button class="btn ghost" onclick="closeModal()" title="Kapat" style="font-size:16px;padding:4px 8px">✕</button>
+      </div>
+    </header>
+    <div class="body">
+      <div style="margin-bottom:8px;font-size:12px;font-weight:600;color:var(--ink)">İndirilecek Kapsam:</div>
+      <div class="export-scope-grid">
+        <label class="export-scope-card">
+          <input type="radio" name="exportScope" value="all" checked>
+          <div class="export-scope-content">
+            <span class="export-scope-title">Tüm Kayıtlar</span>
+            <span class="export-scope-badge">${subsets.all.items.length}</span>
+          </div>
+        </label>
+        <label class="export-scope-card">
+          <input type="radio" name="exportScope" value="sg">
+          <div class="export-scope-content">
+            <span class="export-scope-title">Sistem Gereksinimleri (SG)</span>
+            <span class="export-scope-badge">${subsets.sg.items.length}</span>
+          </div>
+        </label>
+        <label class="export-scope-card">
+          <input type="radio" name="exportScope" value="yg">
+          <div class="export-scope-content">
+            <span class="export-scope-title">Yazılım Gereksinimleri (YG)</span>
+            <span class="export-scope-badge">${subsets.yg.items.length}</span>
+          </div>
+        </label>
+        <label class="export-scope-card">
+          <input type="radio" name="exportScope" value="work">
+          <div class="export-scope-content">
+            <span class="export-scope-title">İş Kalemleri (Epic/Story/Task)</span>
+            <span class="export-scope-badge">${subsets.work.items.length}</span>
+          </div>
+        </label>
+        <label class="export-scope-card">
+          <input type="radio" name="exportScope" value="test">
+          <div class="export-scope-content">
+            <span class="export-scope-title">Test Senaryoları (TC)</span>
+            <span class="export-scope-badge">${subsets.test.items.length}</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="opts" style="margin:10px 0 12px;justify-content:space-between">
+        <div style="display:flex;gap:14px;align-items:center">
+          <span style="font-size:12px;font-weight:600;color:var(--ink)">Ayraç:</span>
+          <label><input type="radio" name="exportDelim" value="," checked> Virgül (,)</label>
+          <label><input type="radio" name="exportDelim" value=";"> Noktalı virgül (;) <span style="font-size:11px;color:var(--muted)">(Excel Türkçe)</span></label>
+        </div>
+        <span id="exportSelectedCount" style="font-size:12px;color:var(--muted)">${subsets.all.items.length} kayıt seçildi</span>
+      </div>
+
+      <div class="export-file-preview">
+        <span class="efp-label">İndirilecek Dosya Adı:</span>
+        <span class="efp-name" id="exportFileNamePreview">${esc(getFileName('all'))}</span>
+      </div>
+
+      <textarea id="csvOut" readonly style="min-height:160px">${esc(getCsvContent('all', ','))}</textarea>
+    </div>
+    <footer>
+      <button class="btn ghost" onclick="closeModal()">Kapat</button>
+      <button class="btn" id="copyCsv">Panoya kopyala</button>
+      <button class="btn primary" id="dlCsv">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Dosyayı İndir</span>
+      </button>
+    </footer>`);
+
+  const out = document.getElementById('csvOut');
+  const namePreview = document.getElementById('exportFileNamePreview');
+  const countLabel = document.getElementById('exportSelectedCount');
+
+  function updateExportView(){
+    const selectedScopeEl = document.querySelector('input[name=exportScope]:checked');
+    const selectedDelimEl = document.querySelector('input[name=exportDelim]:checked');
+    currentScope = selectedScopeEl ? selectedScopeEl.value : 'all';
+    currentDelim = selectedDelimEl ? selectedDelimEl.value : ',';
+
+    const s = subsets[currentScope] || subsets.all;
+    if(out) out.value = getCsvContent(currentScope, currentDelim);
+    if(namePreview) namePreview.textContent = getFileName(currentScope);
+    if(countLabel) countLabel.textContent = `${s.items.length} kayıt seçildi`;
+  }
+
+  document.querySelectorAll('input[name=exportScope]').forEach(r => r.onchange = updateExportView);
+  document.querySelectorAll('input[name=exportDelim]').forEach(r => r.onchange = updateExportView);
+
+  document.getElementById('copyCsv').onclick = async ()=>{
+    if(out){
+      out.select();
+      try{ await navigator.clipboard.writeText(out.value); }catch(e){ document.execCommand('copy'); }
+      toast('CSV panoya kopyalandı.');
+    }
+  };
+
+  document.getElementById('dlCsv').onclick = ()=>{
+    const s = subsets[currentScope] || subsets.all;
+    if(!s.items.length){
+      toast('Seçilen kapsamda kayıt bulunmuyor.');
+      return;
+    }
+    const finalFileName = getFileName(currentScope);
+    const blob = new Blob(['\uFEFF' + out.value], {type:'text/csv;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = finalFileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(`'${finalFileName}' indirildi.`);
+  };
+}
+
+function openImportModal(){
+  const ws = getActiveWorkspace();
+  const rawWsName = (ws && ws.name) ? ws.name : 'Mevcut Proje';
+  openModal(`
+    <header>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="ws-modal-icon-box" style="background:#f0fdf4;border-color:#bbf7d0;color:#16a34a">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <div>
+            <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--ink)">CSV İçe Aktar</h3>
+            <p style="margin:3px 0 0;font-size:12.5px;color:var(--muted)">Hedef Proje: <strong style="color:var(--ink)">${esc(rawWsName)}</strong></p>
+          </div>
+        </div>
+        <button class="btn ghost" onclick="closeModal()" title="Kapat" style="font-size:16px;padding:4px 8px">✕</button>
+      </div>
+    </header>
+    <div class="body">
+      <div class="opts">
+        <input type="file" id="csvFile" accept=".csv,.txt,text/csv">
+        <label><input type="radio" name="m" value="merge" checked> Birleştir (aynı ID güncellenir)</label>
+        <label><input type="radio" name="m" value="replace"> Hepsini değiştir</label>
+      </div>
+      <textarea id="csvIn" placeholder="Veya CSV içeriğini buraya yapıştırın"></textarea>
+    </div>
+    <footer>
+      <button class="btn ghost" onclick="closeModal()">Vazgeç</button>
+      <button class="btn primary" id="doImport">İçe Aktar</button>
+    </footer>`);
+
+  const fileInput = document.getElementById('csvFile');
+  if(fileInput){
+    fileInput.onchange = e => {
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = () => { document.getElementById('csvIn').value = r.result; };
+      r.readAsText(f, 'utf-8');
+    };
+  }
+
+  const btnDoImport = document.getElementById('doImport');
+  if(btnDoImport){
+    btnDoImport.onclick = () => {
+      const txt = document.getElementById('csvIn').value.trim();
+      if(!txt){ toast('Önce dosya seçin veya içerik yapıştırın.'); return; }
+      const mode = document.querySelector('input[name=m]:checked').value;
+      importCSV(txt, mode);
+      closeModal();
+    };
+  }
+}
+
+const btnExportNav = document.getElementById('btnExport');
+if(btnExportNav) btnExportNav.onclick = openExportModal;
+
+const btnImportNav = document.getElementById('btnImport');
+if(btnImportNav) btnImportNav.onclick = openImportModal;
+
+/* =========================================================================
+   Örnek veri, kısayollar, açılış
+   ========================================================================= */
+function loadSample(){
+  const S = (id,type,parent,title,extra={})=>normalize(Object.assign({id,type,parent,title,status:'Açık',priority:'Orta'},extra));
+  state.items = [
+    S('SG-001','SYS','','Kullanıcı kimlik doğrulama',{status:'Onaylı',priority:'Yüksek',verification:'Test',owner:'A. Demir'}),
+    S('SG-001.1','SYS','SG-001','Sistem, kullanıcıyı e-posta ve parola ile doğrulamalıdır',{status:'Onaylı',priority:'Yüksek',verification:'Test'}),
+    S('SG-001.2','SYS','SG-001','Sistem, 5 hatalı denemeden sonra hesabı 15 dakika kilitlemelidir',{priority:'Yüksek',verification:'Test'}),
+    S('SG-002','SYS','','Veri saklama ve yedekleme',{status:'Analizde',verification:'Analiz',owner:'B. Kaya'}),
+    S('YG-001','SW','','Kimlik doğrulama servisi',{status:'Geliştirmede',priority:'Yüksek',links:'SG-001',owner:'C. Yılmaz'}),
+    S('YG-001.1','SW','YG-001','Parola karması Argon2id ile üretilmelidir',{status:'Geliştirmede',priority:'Yüksek',links:'SG-001.1',verification:'Test'}),
+    S('YG-001.2','SW','YG-001','Başarısız giriş sayacı Redis üzerinde tutulmalıdır',{links:'SG-001.2',verification:'Test'}),
+    S('YG-002','SW','','Günlük tam yedek işi',{links:'SG-002',priority:'Düşük'}),
+    S('EP-1','EPIC','','Güvenli giriş akışı',{status:'Geliştirmede',links:'SG-001',owner:'Takım A'}),
+    S('US-1','STORY','EP-1','Kullanıcı olarak e-postamla giriş yapmak istiyorum',{status:'Geliştirmede',points:'5',links:'YG-001.1',owner:'C. Yılmaz'}),
+    S('TSK-1','TASK','US-1','Argon2id karma yardımcı sınıfı',{status:'Doğrulandı',points:'2'}),
+    S('TSK-2','TASK','US-1','Giriş formu doğrulama mesajları',{points:'1'}),
+    S('US-2','STORY','EP-1','Kullanıcı olarak hesabımın kaba kuvvete karşı korunmasını istiyorum',{points:'3',links:'YG-001.2'})
+  ];
+  state.sel='SG-001'; state.view='sys'; save(); render();
+  toast('Örnek veri yüklendi.');
+}
+const bSample = document.getElementById('btnSample');
+if(bSample) bSample.onclick = ()=>{
+  if(state.items.length && !confirm('Mevcut kayıtların üzerine örnek veri yazılacak. Devam edilsin mi?')) return;
+  loadSample();
+};
+const bWipe = document.getElementById('btnWipe');
+if(bWipe) bWipe.onclick = ()=>{
+  if(!confirm('Tüm kayıtlar silinecek. Devam edilsin mi?')) return;
+  state.items=[]; state.sel=null; state.collapsed={}; save(); render();
+};
+document.getElementById('q').addEventListener('input', e=>{ state.q = e.target.value; renderMain(); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const wsM = document.getElementById('wsModal');
+    if(wsM && wsM.classList.contains('open')){
+      closeWorkspaceModal();
+      return;
+    }
+    if(document.getElementById('modal').classList.contains('open')) closeModal();
+    else if(state.sel){ selectItem(null); }
+  }
+  if(e.key==='/' && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault(); document.getElementById('q').focus();
+  }
+});
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function cssEsc(s){ return String(s).replace(/["\\]/g,'\\$&'); }
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+(async function init(){
+  await loadWorkspaces();
+  render();
+  initDrawer();
+  initWorkspaceModal();
+})();
+</script>
+</body>
+</html>
