@@ -3858,20 +3858,19 @@ function renderInspector(){
   </div></div>
 
   <div class="field"><div class="two">
-    <div><label for="f_completion">Tamamlanma (%)</label><input type="number" id="f_completion" min="0" max="100" step="1" value="${esc(it.completion || '0')}"></div>
     <div><label for="f_owner">${isTest ? 'Test uzmanı' : 'Sorumlu'}</label><input type="text" id="f_owner" value="${esc(it.owner)}"></div>
+    <div><label for="f_completion">Tamamlanma (%)</label><input type="number" id="f_completion" min="0" max="100" step="1" value="${esc(it.completion || '0')}"></div>
   </div></div>
 
-  <div class="field"><div class="two">
-    <div><label>Ek Alan</label><div class="muted small" style="padding:7px 0">—</div></div>
+  <div class="field">
     ${isTest
-      ? `<div><label for="f_testType">Test türü</label><select id="f_testType">
-          ${TEST_TYPES.map(t=>`<option value="${t}" ${it.testType===t?'selected':''}>${t}</option>`).join('')}</select></div>`
+      ? `<label for="f_testType">Test türü</label><select id="f_testType">
+          ${TEST_TYPES.map(t=>`<option value="${t}" ${it.testType===t?'selected':''}>${t}</option>`).join('')}</select>`
       : (agile
-        ? `<div><label for="f_points">Story puanı</label><input type="text" id="f_points" value="${esc(it.points)}" placeholder="1, 2, 3, 5…"></div>`
-        : `<div><label for="f_verification">Doğrulama</label><select id="f_verification">
-            ${VERIF.map(v=>`<option value="${v}" ${it.verification===v?'selected':''}>${v||'—'}</option>`).join('')}</select></div>`)}
-  </div></div>
+        ? `<label for="f_points">Story puanı</label><input type="text" id="f_points" value="${esc(it.points)}" placeholder="1, 2, 3, 5…">`
+        : `<label for="f_verification">Doğrulama</label><select id="f_verification">
+            ${VERIF.map(v=>`<option value="${v}" ${it.verification===v?'selected':''}>${v||'—'}</option>`).join('')}</select>`)}
+  </div>
 
   <div class="field">
     <label>${isTest ? 'Test edilen gereksinimler (SG / YG / Story)' : 'Bağlantılar (bu madde neyi karşılıyor)'}</label>
