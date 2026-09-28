@@ -3053,15 +3053,33 @@ function tableHTML(roots){
   const agile = state.view==='agile';
   const isTest = state.view==='test';
   let rows = '';
+  let idColumnWidth = 170;
   const keep = visibleSet();
+
+  // ID sütununu görünür satırlardaki hiyerarşi derinliği ve ID uzunluğuna
+  // göre genişlet. Böylece uzun/dotted ID'ler gereksiz yere ellipsis olmaz.
+  const measureIdCellWidth = (it, depth)=>{
+    const idChars = String(it.id || '').length;
+    const typeChars = String((TYPES[it.type] && TYPES[it.type].prefix) || '').length;
+    const horizontalPadding = 20;          // .cell sağ/sol padding
+    const indentWidth = depth * 15;        // .indent width
+    const twistWidth = 16;
+    const chipWidth = Math.max(30, typeChars * 7 + 14);
+    const gapWidth = (depth + 2) * 8;      // flex gap
+    const idTextWidth = idChars * 7.3;     // 12px monospace yaklaşık karakter genişliği
+    return Math.ceil(horizontalPadding + indentWidth + twistWidth + chipWidth + gapWidth + idTextWidth + 8);
+  };
+
   const walk = (list, depth)=>{
     list.forEach(it=>{
+      idColumnWidth = Math.max(idColumnWidth, measureIdCellWidth(it, depth));
       rows += rowHTML(it, depth);
       const kids = childrenOf(it.id).filter(k=>!keep||keep.has(k.id));
       if(kids.length && !state.collapsed[it.id]) walk(kids, depth+1);
     });
   };
   walk(roots, 0);
+  idColumnWidth = Math.min(idColumnWidth, 360);
   if(!rows) return `<div class="empty"><h3>Kayıt yok</h3><p>Yukarıdaki ekle düğmesiyle başlayın veya CSV içe aktarın.</p></div>`;
 
   const col3Key = isTest ? 'testType' : (agile ? 'points' : 'priority');
@@ -3083,7 +3101,7 @@ function tableHTML(roots){
 
   return `<table class="tree">
     <thead><tr>
-      <th style="width:170px"><div class="th-wrap"><span>ID</span></div></th>
+      <th style="width:${idColumnWidth}px"><div class="th-wrap"><span>ID</span></div></th>
       <th><div class="th-wrap"><span>Başlık</span></div></th>
       <th style="width:${col3Width}"><div class="th-wrap"><span>${col3Label}</span>${thFilterBtn(col3Key, col3Count)}</div></th>
       <th style="width:135px"><div class="th-wrap"><span>${isTest ? 'Test Durumu' : 'Durum'}</span>${thFilterBtn('status', statusCount)}</div></th>
