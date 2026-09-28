@@ -1,0 +1,53 @@
+name: Post-merge CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    # Run exactly once after a PR is merged into main.
+    # Ordinary commits/pushes to feature branches do not trigger this workflow.
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out merged revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Validate repository structure
+        run: |
+          test -f index.html
+          test -s index.html
+
+      - name: Validate inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          html = Path("index.html").read_text(encoding="utf-8")
+          scripts = re.findall(
+              r"<script(?:\\s[^>]*)?>(.*?)</script>",
+              html,
+              flags=re.IGNORECASE | re.DOTALL,
+          )
+
+          if not scripts:
+              raise SystemExit("index.html içinde inline <script> bulunamadı")
+
+          Path("/tmp/gereksinimler-inline.js").write_text(
+              "\n;\n".join(scripts),
+              encoding="utf-8",
+          )
+          PY
+
+          node --check /tmp/gereksinimler-inline.js
