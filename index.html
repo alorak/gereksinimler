@@ -912,6 +912,52 @@ tr.row-TEST.sel td:first-child{box-shadow:inset 4px 0 0 var(--test)}
 .rowbtn{opacity:0;border:1px solid var(--line);background:#fff;border-radius:5px;padding:2px 7px;font-size:12px;color:var(--muted)}
 tr:hover .rowbtn,tr.sel .rowbtn{opacity:1}
 .rowbtn:hover{color:var(--ink);border-color:#c2c8d0}
+.completion-cell{
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:center;
+  gap:4px;
+  padding:5px 8px;
+}
+.completion-editor{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:3px;
+}
+.completion-input{
+  width:54px;
+  height:25px;
+  border:1px solid var(--line);
+  border-radius:5px;
+  background:rgba(255,255,255,0.78);
+  padding:2px 5px;
+  font-family:var(--mono);
+  font-size:11.5px;
+  font-weight:600;
+  text-align:right;
+  outline:none;
+}
+.completion-input:hover{border-color:#b7bec7;background:#fff}
+.completion-input:focus{
+  border-color:var(--accent);
+  background:#fff;
+  box-shadow:0 0 0 2px rgba(27,122,82,0.14);
+}
+.completion-unit{font-size:11px;color:var(--muted);font-weight:600}
+.completion-track{
+  height:3px;
+  background:rgba(0,0,0,0.08);
+  border-radius:999px;
+  overflow:hidden;
+}
+.completion-fill{
+  display:block;
+  height:100%;
+  background:var(--accent);
+  border-radius:inherit;
+  transition:width .15s ease;
+}
 .linkchip{font-family:var(--mono);font-size:11px;color:var(--sw);border-bottom:1px dotted;cursor:pointer;margin-right:6px}
 .empty{padding:56px 24px;text-align:center;color:var(--muted);max-width:460px;margin:0 auto}
 .empty h3{color:var(--ink);font-size:15px;margin:0 0 6px}
@@ -940,7 +986,7 @@ tr:hover .rowbtn,tr.sel .rowbtn{opacity:1}
 }
 .field{padding:11px 16px;border-bottom:1px solid var(--line-soft)}
 .field label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
-.field input[type=text],.field select,.field textarea{
+.field input[type=text],.field input[type=number],.field select,.field textarea{
   width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 9px;background:#fff
 }
 .field textarea{min-height:76px;resize:vertical;line-height:1.5}
@@ -1865,7 +1911,7 @@ const TEST_STATUS_ICONS = {
 const TEST_TYPES = ['Birim Testi','Entegrasyon Testi','Sistem Testi','Kabul Testi','Regresyon Testi','Performans Testi','Güvenlik Testi'];
 const PRIO   = ['Yüksek','Orta','Düşük'];
 const VERIF  = ['','Test','Analiz','Muayene','Gösterim'];
-const FIELDS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType'];
+const FIELDS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType','completion'];
 const WORKSPACES_KEY = 'reqtool:workspaces:v2';
 const LEGACY_KEY = 'reqtool:v1';
 const MAX_WORKSPACES = 10;
@@ -2415,11 +2461,18 @@ function initWorkspaceModal(){
     });
   }
 }
+function normalizeCompletionValue(value){
+  const raw = String(value == null ? '' : value).trim().replace('%','').replace(',','.');
+  const num = Number(raw);
+  if(!Number.isFinite(num)) return '0';
+  return String(Math.min(100, Math.max(0, Math.round(num))));
+}
 function normalize(o){
   const it = {};
   FIELDS.forEach(f=> it[f] = o[f]==null ? '' : String(o[f]));
   if(!TYPES[it.type]) it.type = 'SYS';
   it.links = (it.links||'').split(/[,;|]/).map(s=>s.trim()).filter(Boolean).join(',');
+  it.completion = normalizeCompletionValue(it.completion);
   return it;
 }
 
@@ -2458,6 +2511,7 @@ function addItem(type, parentId){
     title:'',
     status:defaultStatus,
     priority:'Orta',
+    completion:'0',
     testType:type === 'TEST' ? 'Sistem Testi' : ''
   });
   const pIdx = parentId ? state.items.findIndex(i=>i.id===parentId) : -1;
@@ -3110,7 +3164,7 @@ function tableHTML(roots){
       <th style="width:135px"><div class="th-wrap"><span>${isTest ? 'Test Durumu' : 'Durum'}</span>${thFilterBtn('status', statusCount)}</div></th>
       <th style="width:180px"><div class="th-wrap"><span>${isTest ? 'Test Edilen Gereksinim' : (agile?'İlgili gereksinim':'İzlenebilirlik')}</span>${thFilterBtn('trace', traceCount)}</div></th>
       <th style="width:145px"><div class="th-wrap"><span>Etiketler</span>${thFilterBtn('tags', tagsCount)}</div></th>
-      <th style="width:96px"></th>
+      <th style="width:116px"><div class="th-wrap"><span>Tamamlanma</span></div></th>
     </tr></thead><tbody>${rows}</tbody></table>`;
 }
 
@@ -3149,9 +3203,19 @@ function rowHTML(it, depth){
     <td><div class="cell small"><span class="dot ${st}"></span>${testIcon}${esc(it.status||defaultSt)}</div></td>
     <td><div class="cell small" style="display:flex;align-items:center;gap:4px"><div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:2px">${trace}</div>${linkBtn}</div></td>
     <td><div class="cell small muted" style="flex-wrap:wrap;gap:2px">${tagChips}</div></td>
-    <td><div class="cell" style="justify-content:flex-end">
-      <button class="rowbtn" data-detail="${it.id}" title="Detaylı modalı aç">Detay</button>
-    </div></td>
+    <td>
+      <div class="cell completion-cell">
+        <div class="completion-editor">
+          <input class="completion-input" type="number" min="0" max="100" step="1"
+            value="${esc(it.completion || '0')}" data-completion="${esc(it.id)}"
+            aria-label="${esc(it.id)} tamamlanma yüzdesi" title="0 ile 100 arasında tamamlanma yüzdesi">
+          <span class="completion-unit">%</span>
+        </div>
+        <div class="completion-track" aria-hidden="true">
+          <span class="completion-fill" style="width:${esc(it.completion || '0')}%"></span>
+        </div>
+      </div>
+    </td>
   </tr>`;
 }
 
@@ -3197,6 +3261,36 @@ function wireRows(el){
       e.preventDefault(); e.stopPropagation();
       openRowLinkPopover(b, b.dataset.pickLink);
     };
+  });
+  el.querySelectorAll('[data-completion]').forEach(input=>{
+    const updateBar = (value)=>{
+      const cell = input.closest('.completion-cell');
+      const fill = cell ? cell.querySelector('.completion-fill') : null;
+      if(fill) fill.style.width = value + '%';
+    };
+    input.addEventListener('input', e=>{
+      e.stopPropagation();
+      if(input.value.trim()===''){ updateBar(0); return; }
+      const value = Number(normalizeCompletionValue(input.value));
+      updateBar(value);
+      const item = byId(input.dataset.completion);
+      if(item){
+        item.completion = String(value);
+        save();
+      }
+    });
+    input.addEventListener('change', e=>{
+      e.stopPropagation();
+      const value = normalizeCompletionValue(input.value);
+      input.value = value;
+      updateBar(Number(value));
+      const item = byId(input.dataset.completion);
+      if(item){
+        item.completion = value;
+        save();
+      }
+    });
+    input.addEventListener('click', e=>e.stopPropagation());
   });
   el.querySelectorAll('tr[data-id]').forEach(tr=>{
     tr.onclick = (e)=>{
@@ -3764,7 +3858,12 @@ function renderInspector(){
   </div></div>
 
   <div class="field"><div class="two">
+    <div><label for="f_completion">Tamamlanma (%)</label><input type="number" id="f_completion" min="0" max="100" step="1" value="${esc(it.completion || '0')}"></div>
     <div><label for="f_owner">${isTest ? 'Test uzmanı' : 'Sorumlu'}</label><input type="text" id="f_owner" value="${esc(it.owner)}"></div>
+  </div></div>
+
+  <div class="field"><div class="two">
+    <div><label>Ek Alan</label><div class="muted small" style="padding:7px 0">—</div></div>
     ${isTest
       ? `<div><label for="f_testType">Test türü</label><select id="f_testType">
           ${TEST_TYPES.map(t=>`<option value="${t}" ${it.testType===t?'selected':''}>${t}</option>`).join('')}</select></div>`
@@ -3828,6 +3927,26 @@ function renderInspector(){
   };
   bind('f_title','title'); bind('f_desc','desc'); bind('f_owner','owner');
   bind('f_points','points'); bind('f_tags','tags');
+
+  const completionEl = document.getElementById('f_completion');
+  if(completionEl){
+    completionEl.addEventListener('input', ()=>{
+      if(completionEl.value.trim()==='') return;
+      it.completion = normalizeCompletionValue(completionEl.value);
+      save();
+      const rowInput = document.querySelector(`[data-completion="${cssEsc(it.id)}"]`);
+      if(rowInput){
+        rowInput.value = it.completion;
+        const fill = rowInput.closest('.completion-cell')?.querySelector('.completion-fill');
+        if(fill) fill.style.width = it.completion + '%';
+      }
+    });
+    completionEl.addEventListener('change', ()=>{
+      it.completion = normalizeCompletionValue(completionEl.value);
+      completionEl.value = it.completion;
+      save();
+    });
+  }
   bind('f_status','status'); bind('f_priority','priority'); bind('f_verification','verification');
   bind('f_type','type'); bind('f_testType','testType');
 
@@ -4512,6 +4631,7 @@ function openDetailModal(id){
             <span class="detail-badge-pill"><span class="dot ${st}"></span> ${testBadgeIcon}${esc(it.status|| (isTest?'Taslak':'Açık'))}</span>
             ${it.priority ? `<span class="detail-badge-pill">Öncelik: <strong style="color:var(--ink)">${esc(it.priority)}</strong></span>` : ''}
             ${it.points ? `<span class="detail-badge-pill" style="color:var(--story);font-weight:600">${esc(it.points)} SP</span>` : ''}
+            <span class="detail-badge-pill">Tamamlanma: <strong style="color:var(--accent)">${esc(it.completion || '0')}%</strong></span>
           </div>
           <button class="btn ghost" onclick="closeModal()" title="Kapat" style="font-size:16px;padding:4px 9px">✕</button>
         </div>
@@ -4586,6 +4706,10 @@ function openDetailModal(id){
                 <span class="meta-lbl">Öncelik</span>
                 <span class="meta-val" style="font-size:13px;font-weight:500">${esc(it.priority) || '<span class="muted">—</span>'}</span>
               </div>
+              <div class="detail-meta-card">
+                <span class="meta-lbl">Tamamlanma</span>
+                <span class="meta-val" style="font-size:13px;font-weight:700;color:var(--accent)">${esc(it.completion || '0')}%</span>
+              </div>
               ${it.points ? `
                 <div class="detail-meta-card">
                   <span class="meta-lbl">Story Puanı</span>
@@ -4634,11 +4758,11 @@ function openDetailModal(id){
 /* =========================================================================
    CSV
    ========================================================================= */
-const HEADERS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType'];
+const HEADERS = ['id','type','parent','title','desc','status','priority','owner','verification','points','links','tags','testType','completion'];
 const HEADER_TR = {
   id:'id', type:'tur', parent:'ust_id', title:'baslik', desc:'aciklama', status:'durum',
   priority:'oncelik', owner:'sorumlu', verification:'dogrulama', points:'puan',
-  links:'baglantilar', tags:'etiketler', testType:'test_turu'
+  links:'baglantilar', tags:'etiketler', testType:'test_turu', completion:'tamamlanma'
 };
 const ALIASES = {};
 HEADERS.forEach(h=>{ ALIASES[h]=h; ALIASES[HEADER_TR[h]]=h; });
@@ -4648,7 +4772,9 @@ Object.assign(ALIASES,{
   'doğrulama':'verification','bağlantılar':'links','trace':'links','izlenebilirlik':'links',
   'description':'desc','name':'title','summary':'title','story_points':'points','sp':'points',
   'assignee':'owner','atanan':'owner','labels':'tags','etiket':'tags','durum_':'status',
-  'test_türü':'testType','test_turu':'testType','test_type':'testType'
+  'test_türü':'testType','test_turu':'testType','test_type':'testType',
+  'tamamlanma_yuzdesi':'completion','tamamlanma_orani':'completion','tamamlanma_%':'completion',
+  'completion_percent':'completion','completion_percentage':'completion','progress':'completion'
 });
 const TYPE_ALIAS = {
   sg:'SYS', sys:'SYS','sistem':'SYS','system':'SYS','sistem gereksinimi':'SYS',
